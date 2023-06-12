@@ -199,4 +199,4 @@ Dungeon.prototype.draw = function(camera, display, player) {
             );
         }
     }
-}
+};
