@@ -27,9 +27,9 @@ mapContainer.appendChild(display.getContainer());
 
 map.create(function (x, y, value) {
     if (value) {
-        display.draw(x, y, "", "#653", "#320");
+        display.draw(x, y, "#", "#653", "#320");
     } else {
-        display.draw(x, y, "");
+        display.draw(x, y, ".");
     }
 });
 
@@ -50,17 +50,67 @@ class Character {
     }
 }
 function drawCharacter(character) {
-    // const display = getDisplay();
     display.draw(character.x, character.y, character.symbol, character.color);
 }
 function handleInput(key) {
+    switch (key) {
+        case 'z':
+            moveCharacter(playerCharacter, 0, -1);
+            break;
+        case 's':
+            moveCharacter(playerCharacter, 0, 1);
+            break;
+        case 'q':
+            moveCharacter(playerCharacter, -1, 0);
+            break;
+        case 'd':
+            moveCharacter(playerCharacter, 1, 0);
+            break;
+    }
+    drawCharacter(playerCharacter);
 }
 
 function moveCharacter(character, dx, dy) {
-    character.x += dx;
-    character.y += dy;
+    deleteCharacter(playerCharacter);
+    if (isCollision(character.x + dx, character.y + dy)) {
+        console.log("collision");
+        return;
+    }
+    else {
+        character.x += dx;
+        character.y += dy;
+    }
+
 }
-let randomRooms=rooms[Math.floor(Math.random()*rooms.length)];
-let randomCenter=randomRooms.getCenter();
-const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red'); 
-drawCharacter(playerCharacter); 
+function deleteCharacter(character) {
+    display.draw(character.x, character.y, ".");
+}
+
+
+
+
+function isCollision(x, y) {
+    let freeCoordinates = getFreeCoordinates();
+    console.log("x : " + x + " y : " + y);
+    if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) {
+        console.log("collision 0");
+        return true;
+    }
+    else if (isInFreeCoordinates(x, y) == true) {
+        console.log("collision 1");
+        return true;
+    }
+    console.log("pas de collision");
+    return false;
+}
+
+let randomRooms = rooms[Math.floor(Math.random() * rooms.length)];
+let randomCenter = randomRooms.getCenter();
+
+const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red');
+drawCharacter(playerCharacter);
+
+window.addEventListener('keydown', function (event) {
+    handleInput(event.key);
+});
+
