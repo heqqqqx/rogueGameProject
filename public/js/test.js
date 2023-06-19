@@ -90,16 +90,16 @@ function deleteCharacter(character) {
 
 
 function isCollision(x, y) {
-    let freeCoordinates = getFreeCoordinates();
+    // let freeCoordinates = getFreeCoordinates();
     console.log("x : " + x + " y : " + y);
     if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight) {
         console.log("collision 0");
         return true;
     }
-    else if (isInFreeCoordinates(x, y) == true) {
-        console.log("collision 1");
-        return true;
-    }
+    // else if (isInFreeCoordinates(x, y) == true) {
+    //     console.log("collision 1");
+    //     return true;
+    
     console.log("pas de collision");
     return false;
 }
