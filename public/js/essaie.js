@@ -1,12 +1,3 @@
-class Character {
-    constructor(x, y, symbol, color) {
-        this.x = x;
-        this.y = y;
-        this.symbol = symbol;
-        this.color = color;
-    }
-}
-
 class Game {
     constructor(mapWidth, mapHeight, maxRooms, corridorLength, displayOptions) {
         this.mapWidth = mapWidth;
@@ -48,19 +39,8 @@ class Game {
         this.mapContainer.appendChild(this.display.getContainer());
     }
 
-    createPlayerCharacter() {
-        if (this.rooms.length === 0) {
-            console.error("No rooms available.");
-            return;
-        }
-    
-        const randomRoom = this.rooms[Math.floor(Math.random() * this.rooms.length)];
-        const randomCenter = randomRoom.getCenter();
-    
-        this.playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red');
-        this.drawCharacter(this.playerCharacter); // Ajouter cette ligne pour afficher le personnage
-    }
-    
+
+
 
     drawMap() {
         this.map.create((x, y, value) => {
@@ -72,10 +52,49 @@ class Game {
         });
     }
 
+
+
+
+    isInFreeCoordinates(x, y) {
+        for (let i = 0; i < this.rooms.length; i++) {
+            const room = this.rooms[i];
+            if (room.getLeft() <= x && x <= room.getRight() && room.getTop() <= y && y <= room.getBottom()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    addEventListeners() {
+        window.addEventListener('keydown', event => {
+            this.handleInput(event.key);
+        });
+    }
+}
+
+class Character extends Game {
+    constructor(x, y, symbol, color) {
+        this.x = x;
+        this.y = y;
+        this.symbol = symbol;
+        this.color = color;
+    }
+
+    createPlayerCharacter() {
+        if (this.rooms.length === 0) {
+            console.error("No rooms available.");
+            return;
+        }
+
+        const randomRoom = this.rooms[Math.floor(Math.random() * this.rooms.length)];
+        const randomCenter = randomRoom.getCenter();
+
+        this.playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red');
+        this.drawCharacter(this.playerCharacter); // Ajouter cette ligne pour afficher le personnage
+    }
     drawCharacter(character) {
         this.display.draw(character.x, character.y, character.symbol, character.color);
     }
-
     handleInput(key) {
         switch (key) {
             case 'z':
@@ -106,41 +125,25 @@ class Game {
             }
         }
     }
-    
+
 
     deleteCharacter(character) {
         if (character) {
-            this.display.draw(character.x, character.y, ".");
+            Game.display.draw(character.x, character.y, ".");
         }
     }
-    
+
 
     isCollision(x, y) {
-        if (x < 0 || x >= this.mapWidth || y < 0 || y >= this.mapHeight) {
+        if (x < 0 || x >= Game.mapWidth || y < 0 || y >= Game.mapHeight) {
             console.log("collision 0");
             return true;
-        } else if (this.isInFreeCoordinates(x, y)) {
+        } else if (Game.isInFreeCoordinates(x, y)) {
             console.log("collision 1");
             return true;
         }
         console.log("pas de collision");
         return false;
-    }
-
-    isInFreeCoordinates(x, y) {
-        for (let i = 0; i < this.rooms.length; i++) {
-            const room = this.rooms[i];
-            if (room.getLeft() <= x && x <= room.getRight() && room.getTop() <= y && y <= room.getBottom()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    addEventListeners() {
-        window.addEventListener('keydown', event => {
-            this.handleInput(event.key);
-        });
     }
 }
 
