@@ -15,7 +15,7 @@ var map = new ROT.Map.Digger(mapWidth, mapHeight, {
 var displayOptions = {
     width: mapWidth,
     height: mapHeight,
-    fontSize: 30,
+    fontSize:   10,
     fontFamily: "Ubuntu Mono",
     bg: "#000",
     fg: "#fff"
@@ -27,9 +27,9 @@ mapContainer.appendChild(display.getContainer());
 
 map.create(function (x, y, value) {
     if (value) {
-        display.draw(x, y, "#", "#653", "#320");
+        display.draw(x, y, "", "#653", "#320");
     } else {
-        display.draw(x, y, ".");
+        display.draw(x, y, "");
     }
 });
 
@@ -83,7 +83,7 @@ function moveCharacter(character, dx, dy) {
 
 }
 function deleteCharacter(character) {
-    display.draw(character.x, character.y, ".");
+    display.draw(character.x, character.y, "");
 }
 
 
@@ -113,4 +113,3 @@ drawCharacter(playerCharacter);
 window.addEventListener('keydown', function (event) {
     handleInput(event.key);
 });
-
