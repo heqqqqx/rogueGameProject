@@ -125,7 +125,7 @@ class Character {
     }
 }
 
-class Weapon extends Character {
+class Weapon {
     constructor(x, y, symbol, color, damage, range, ammo) {
         this.x = x;
         this.y = y;
