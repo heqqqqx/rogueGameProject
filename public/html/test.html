@@ -3,36 +3,18 @@
 
 <head>
     <title>Cramptés Dungeon</title>
-    <style>
-        body {
-            font-family: monospace;
-            background-color: #000;
-            color: #fff;
-            text-align: center;
-        }
-        
-        #map-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        
-        canvas {
-            border: 1px solid #fff;
-        }
-    </style>
+    <link href="../css/style.css" rel="stylesheet">
 </head>
-
 <body>
-    <h1>Procedurale Dungeon Generation</h1>
+    <h1 class="niveau">Dungeon level 1</h1>
     <div id="stats-container">
-        <p id="hp">HP: </p>
-        <p id="defense">Defense: </p>
-        <p id="power">Power: </p>
-        <p id="weapon">Weapon: </p>
-        <p id="ammo">Ammo: </p>
-
+        <div class="info" id="hp">HP: </div>
+        <div class="info" id="defense">Defense: </div>
+        <div class="info" id="power">Power: </div>
+        <div class="info" id="weapon">Weapon: </div>
+        <div class="info" id="ammo">Ammo: </div>
+        <div class="info" id="gold">Gold: </div>
+        <div class="info" id="level">Level: </div>
     </div>
 
     <div id="map-container"></div>

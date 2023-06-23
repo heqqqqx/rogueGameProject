@@ -26,7 +26,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function(x, y, value) {
+map.create(function (x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -59,6 +59,11 @@ class Enemy {
         if (!this.isAlive()) {
             return;
         }
+
+        if (Math.random() < 0.3) { // Ajout de l'aléatoire avec une chance de 50% de se déplacer
+            return;
+        }
+
         if (Math.abs(this.x - playerCharacter.x) <= this.sightRadius &&
             Math.abs(this.y - playerCharacter.y) <= this.sightRadius) {
             if (Math.abs(this.x - playerCharacter.x) <= 1 &&
@@ -74,6 +79,7 @@ class Enemy {
             }
         }
     }
+
     takeDamage(damage) {
         this.currentHP -= damage;
         if (this.currentHP < 0) this.currentHP = 0;
@@ -84,7 +90,7 @@ class Enemy {
     }
 }
 class Character {
-    constructor(x, y, symbol, color, maxHP, currentHP, defense, power) {
+    constructor(x, y, symbol, color, maxHP, currentHP, defense, power, gold) {
         this.x = x;
         this.y = y;
         this.symbol = symbol;
@@ -93,6 +99,7 @@ class Character {
         this.currentHP = currentHP;
         this.defense = defense;
         this.power = power;
+        this.gold = gold;
     }
     pickupDefense(defense) {
         this.defense += defense;
@@ -130,8 +137,14 @@ class Character {
         document.getElementById('defense').textContent = `Defense: ${this.defense}`;
         document.getElementById('power').textContent = `Power: ${this.power}`;
         document.getElementById('weapon').textContent = `Weapon: ${this.weapon ? this.weapon.name : 'None'}`;
-        document.getElementById('ammo').textContent = `Ammo: ${this.weapon ? this.weapon.ammo : 'None'}`;
-
+        //print weapon ammo only when the player pick up a weapon
+        if (this.weapon){
+            document.getElementById('ammo').textContent = `Ammo: ${this.weapon.ammo}`;
+        }else{
+            document.getElementById('ammo').textContent = `Ammo: 0`;
+        }
+        // document.getElementById('ammo').textContent = `Ammo: ${this.weapon ? this.weapon.ammo : 'None'}`;
+        document.getElementById('gold').textContent = `Gold: ${this.gold}`;
     }
 }
 
@@ -157,10 +170,19 @@ class Weapon {
     }
 
 }
+class Gold {
+    constructor(x, y, symbol, color) {
+        this.x = x;
+        this.y = y;
+        this.symbol = symbol;
+        this.color = color;
+    }
+}
+
 
 class Potion {
     constructor(x, y, symbol, color, healAmount) {
-        this.x = y;
+        this.x = x;
         this.y = y;
         this.symbol = symbol;
         this.color = color;
@@ -175,12 +197,15 @@ function drawCharacter(character) {
 function drawWeapon(weapon) {
     display.draw(weapon.x, weapon.y, weapon.symbol, weapon.color);
 }
+function drawGold(gold) {
+    display.draw(gold.x, gold.y, gold.symbol, gold.color);
+}
 
 function drawPotion(potion) {
     display.draw(potion.x, potion.y, potion.symbol, potion.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -194,7 +219,7 @@ function updateFOV() {
 
     visibleCells.clear(); // Clear the set before recomputing
 
-    fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
+    fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
         let cellKey = startX + ',' + startY;
         visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -220,6 +245,9 @@ function updateFOV() {
 
     if (rat && visibleCells.has(rat.x + ',' + rat.y) && rat.isAlive()) {
         drawCharacter(rat);
+    }
+    if (gold && visibleCells.has(gold.x + ',' + gold.y)) {
+        drawGold(gold);
     }
 }
 
@@ -255,18 +283,25 @@ function handleInput(key) {
         case 'z':
             moveCharacter(playerCharacter, 0, -1);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
             break;
         case 's':
             moveCharacter(playerCharacter, 0, 1);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
+
             break;
         case 'q':
             moveCharacter(playerCharacter, -1, 0);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
+
             break;
         case 'd':
             moveCharacter(playerCharacter, 1, 0);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
+
             break;
     }
     playerCharacter.updateStats();
@@ -275,58 +310,73 @@ function handleInput(key) {
 
 }
 
-
-
 function pickUpWeapon(character) {
     if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
         character.weapon = weapon1;
         console.log(character);
-        deleteWeapon(weapon1);
+        deleteWeapon(character);
         weapon1 = null;
     } else if (weapon2 && character.x === weapon2.x && character.y === weapon2.y) {
         character.weapon = weapon2;
         console.log(character);
-        deleteWeapon(weapon2);
+        deleteWeapon(character);
         weapon2 = null;
     }
 }
 
-
-function deleteWeapon(weapon) {
-    display.draw(weapon.x, weapon.y, "");
+function deleteWeapon(character) {
+    drawCharacter(character)
 }
 
+function pickUpGold(character) {
+    if (gold && character.x === gold.x && character.y === gold.y) {
+        character.gold ++;
+        deleteGold(character);
+        gold = null;
+    }
+}
+
+function deleteGold(character) {
+    drawCharacter(character);
+}
+// draw the character at a random position
 let randomRooms = rooms[Math.floor(Math.random() * rooms.length)];
 let randomCenter = randomRooms.getCenter();
-const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red', 100, 100, 9, 5);
+
+const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red', 100, 100, 9, 5,0);
 drawCharacter(playerCharacter);
+
+// draw the rats at a random position
 let randomEnemyRoom = rooms[Math.floor(Math.random() * rooms.length)];
 let enemyCenter = randomEnemyRoom.getCenter();
 let enemies = [];
 let rat = new Enemy(enemyCenter[0], enemyCenter[1], 'R', 'green', 5, 10, 30, 30);
 enemies.push(rat);
 
-
+// draw the weapons at a random position
 let randomRoomsForWeapons = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
 let randomCentersForWeapons = [randomRoomsForWeapons[0].getCenter(), randomRoomsForWeapons[1].getCenter()];
 
 let weapon1 = new Weapon(randomCentersForWeapons[0][0], randomCentersForWeapons[0][1], 'G', 'blue', 30, 4, 4, "Gun");
 let weapon2 = new Weapon(randomCentersForWeapons[1][0], randomCentersForWeapons[1][1], 'G', 'blue', 30, 4, 4, "Gun");
 
+let randomRoomsForGold = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
+let randomCentersForGold = [randomRoomsForGold[0].getCenter(), randomRoomsForGold[1].getCenter()];
+
+let gold = new Gold(randomCentersForGold[0][0], randomCentersForGold[0][1], 'G', 'yellow');
+
 drawWeapon(weapon1);
 drawWeapon(weapon2);
 drawCharacter(rat);
+drawGold(gold);
 
-window.addEventListener('keydown', function(event) {
+window.addEventListener('keydown', function (event) {
     handleInput(event.key);
 });
 
 updateFOV();
 
-
-
-
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
     if (!playerCharacter.weapon) {
         console.log('no weapon');
         return
@@ -336,8 +386,6 @@ window.addEventListener('click', function(event) {
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
 
-
-
     if (x === rat.x && y === rat.y) {
         rat.takeDamage(damage);
         console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
@@ -345,5 +393,4 @@ window.addEventListener('click', function(event) {
         console.log('rat has ' + rat.currentHP + ' hp left')
         return;
     }
-
 });
