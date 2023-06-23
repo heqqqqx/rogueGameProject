@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Procedural Dungeon Generation</title>
+    <title>Cramptés Dungeon</title>
     <style>
         body {
             font-family: monospace;
@@ -10,14 +10,14 @@
             color: #fff;
             text-align: center;
         }
-
+        
         #map-container {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
-
+        
         canvas {
             border: 1px solid #fff;
         }
@@ -26,6 +26,15 @@
 
 <body>
     <h1>Procedurale Dungeon Generation</h1>
+    <div id="stats-container">
+        <p id="hp">HP: </p>
+        <p id="defense">Defense: </p>
+        <p id="power">Power: </p>
+        <p id="weapon">Weapon: </p>
+        <p id="ammo">Ammo: </p>
+
+    </div>
+
     <div id="map-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/rot-js@2/dist/rot.js"></script>
