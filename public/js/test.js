@@ -56,6 +56,9 @@ class Enemy {
         this.currentHP = currentHP;
     }
     takeTurn() {
+        if (!this.isAlive()) {
+            return;
+        }
         if (Math.abs(this.x - playerCharacter.x) <= this.sightRadius &&
             Math.abs(this.y - playerCharacter.y) <= this.sightRadius) {
             if (Math.abs(this.x - playerCharacter.x) <= 1 &&
@@ -74,6 +77,10 @@ class Enemy {
     takeDamage(damage) {
         this.currentHP -= damage;
         if (this.currentHP < 0) this.currentHP = 0;
+    }
+
+    isAlive() {
+        return this.currentHP > 0;
     }
 }
 class Character {
@@ -122,11 +129,14 @@ class Character {
         document.getElementById('hp').textContent = `HP: ${this.currentHP}`;
         document.getElementById('defense').textContent = `Defense: ${this.defense}`;
         document.getElementById('power').textContent = `Power: ${this.power}`;
+        document.getElementById('weapon').textContent = `Weapon: ${this.weapon ? this.weapon.name : 'None'}`;
+        document.getElementById('ammo').textContent = `Ammo: ${this.weapon ? this.weapon.ammo : 'None'}`;
+
     }
 }
 
 class Weapon {
-    constructor(x, y, symbol, color, damage, range, ammo) {
+    constructor(x, y, symbol, color, damage, range, ammo, name) {
         this.x = x;
         this.y = y;
         this.symbol = symbol;
@@ -134,6 +144,7 @@ class Weapon {
         this.damage = damage;
         this.range = range;
         this.ammo = ammo;
+        this.name = name;
 
     }
 
@@ -173,13 +184,20 @@ var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
     return !mapMatrix[x][y];
 });
 
+let visibleCells = new Set(); // Store the visible cells
+
 function updateFOV() {
     var x = playerCharacter.x;
     var y = playerCharacter.y;
     var visibilityRadius = 10;
     display.clear();
 
+    visibleCells.clear(); // Clear the set before recomputing
+
     fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
+        let cellKey = startX + ',' + startY;
+        visibleCells.add(cellKey); // Add the cell to the visible set
+
         if (mapMatrix[startX][startY] === 1) {
             display.draw(startX, startY, "#", "#653", "#320");
         } else {
@@ -187,10 +205,24 @@ function updateFOV() {
         }
     });
 
-    drawCharacter(playerCharacter);
-    if (weapon1) drawWeapon(weapon1);
-    if (weapon2) drawWeapon(weapon2);
+    // Only draw the character if they're visible
+    if (visibleCells.has(playerCharacter.x + ',' + playerCharacter.y)) {
+        drawCharacter(playerCharacter);
+    }
+
+    if (weapon1 && visibleCells.has(weapon1.x + ',' + weapon1.y)) {
+        drawWeapon(weapon1);
+    }
+
+    if (weapon2 && visibleCells.has(weapon2.x + ',' + weapon2.y)) {
+        drawWeapon(weapon2);
+    }
+
+    if (rat && visibleCells.has(rat.x + ',' + rat.y) && rat.isAlive()) {
+        drawCharacter(rat);
+    }
 }
+
 
 function moveCharacter(character, dx, dy) {
     deleteCharacter(playerCharacter);
@@ -238,10 +270,12 @@ function handleInput(key) {
             break;
     }
     playerCharacter.updateStats();
-    drawCharacter(playerCharacter);
+
     rat.takeTurn();
-    drawCharacter(rat);
+
 }
+
+
 
 function pickUpWeapon(character) {
     if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
@@ -276,8 +310,8 @@ enemies.push(rat);
 let randomRoomsForWeapons = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
 let randomCentersForWeapons = [randomRoomsForWeapons[0].getCenter(), randomRoomsForWeapons[1].getCenter()];
 
-let weapon1 = new Weapon(randomCentersForWeapons[0][0], randomCentersForWeapons[0][1], 'G', 'blue', 30, 4, 4);
-let weapon2 = new Weapon(randomCentersForWeapons[1][0], randomCentersForWeapons[1][1], 'G', 'blue', 30, 4, 4);
+let weapon1 = new Weapon(randomCentersForWeapons[0][0], randomCentersForWeapons[0][1], 'G', 'blue', 30, 4, 4, "Gun");
+let weapon2 = new Weapon(randomCentersForWeapons[1][0], randomCentersForWeapons[1][1], 'G', 'blue', 30, 4, 4, "Gun");
 
 drawWeapon(weapon1);
 drawWeapon(weapon2);
