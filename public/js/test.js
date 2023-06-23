@@ -15,7 +15,7 @@ var map = new ROT.Map.Digger(mapWidth, mapHeight, {
 var displayOptions = {
     width: mapWidth,
     height: mapHeight,
-    fontSize:  10,
+    fontSize: 10,
     fontFamily: "Ubuntu Mono",
     bg: "#000",
     fg: "#fff"
@@ -36,7 +36,7 @@ map.create(function (x, y, value) {
     } else {
         display.draw(x, y, "");
     }
-    
+
 });
 var rooms = map.getRooms();
 for (var i in rooms) {
@@ -45,23 +45,33 @@ for (var i in rooms) {
 }
 
 class Enemy {
-    constructor(x, y, symbol, color, sightRadius, damage) {
+    constructor(x, y, symbol, color, sightRadius, damage, maxHP, currentHP) {
         this.x = x;
         this.y = y;
         this.symbol = symbol;
         this.color = color;
         this.sightRadius = sightRadius;
         this.damage = damage;
+        this.maxHP = maxHP;
+        this.currentHP = currentHP;
     }
-
     takeTurn() {
+        if (!this.isAlive()) {
+            return;
+        }
+
+        if (Math.random() < 0.3) { // Ajout de l'aléatoire avec une chance de 50% de se déplacer
+            return;
+        }
+
         if (Math.abs(this.x - playerCharacter.x) <= this.sightRadius &&
             Math.abs(this.y - playerCharacter.y) <= this.sightRadius) {
-            if (Math.abs(this.x - playerCharacter.x) <= 1 && 
+            if (Math.abs(this.x - playerCharacter.x) <= 1 &&
                 Math.abs(this.y - playerCharacter.y) <= 1) {
-                    playerCharacter.currentHP -= this.damage * (1 - playerCharacter.defense / 10);
-                    if (playerCharacter.currentHP < 0) playerCharacter.currentHP = 0;
+                playerCharacter.currentHP -= this.damage * (1 - playerCharacter.defense / 10);
+                if (playerCharacter.currentHP < 0) playerCharacter.currentHP = 0;
                 console.log(`Player HP: ${playerCharacter.currentHP}`);
+                console.log(rat.x, rat.y, playerCharacter.x, playerCharacter.y)
             } else {
                 let dx = Math.sign(playerCharacter.x - this.x);
                 let dy = Math.sign(playerCharacter.y - this.y);
@@ -69,43 +79,77 @@ class Enemy {
             }
         }
     }
+
+    takeDamage(damage) {
+        this.currentHP -= damage;
+        if (this.currentHP < 0) this.currentHP = 0;
+    }
+
+    isAlive() {
+        return this.currentHP > 0;
+    }
 }
 class Character {
-    constructor(x, y, symbol, color, maxHP, currentHP, defense, power) {
-      this.x = x;
-      this.y = y;
-      this.symbol = symbol;
-      this.color = color;
-      this.maxHP = maxHP;
-      this.currentHP = currentHP;
-      this.defense = defense;
-      this.power = power;
+    constructor(x, y, symbol, color, maxHP, currentHP, defense, power, gold) {
+        this.x = x;
+        this.y = y;
+        this.symbol = symbol;
+        this.color = color;
+        this.maxHP = maxHP;
+        this.currentHP = currentHP;
+        this.defense = defense;
+        this.power = power;
+        this.gold = gold;
     }
     pickupDefense(defense) {
         this.defense += defense;
         if (this.defense > 10) this.defense = 10;
     }
-    // Method to take damage
+
     takeDamage(damage) {
-      //
-      this.currentHP -= damage * (1 - this.defense / 10);
-      if (this.currentHP < 0) this.currentHP = 0;
+        //
+        this.currentHP -= damage * (1 - this.defense / 10);
+        if (this.currentHP < 0) this.currentHP = 0;
     }
-    
+
+
     // Method to heal
     heal(amount) {
-      this.currentHP += amount;
-      if (this.currentHP > this.maxHP) this.currentHP = this.maxHP;
+        this.currentHP += amount;
+        if (this.currentHP > this.maxHP) this.currentHP = this.maxHP;
     }
-    
+
     // Method to check if character is alive
     isAlive() {
-      return this.currentHP > 0;
+        return this.currentHP > 0;
     }
-  }
+
+    attack(target) {
+        let damage = this.power;
+        if (this.weapon) {
+            damage += this.weapon.attack();
+        }
+        target.currentHP -= damage;
+        if (target.currentHP < 0) target.currentHP = 0;
+    }
+    updateStats() {
+        document.getElementById('hp').textContent = `HP: ${this.currentHP}`;
+        document.getElementById('defense').textContent = `Defense: ${this.defense}`;
+        document.getElementById('power').textContent = `Power: ${this.power}`;
+        document.getElementById('weapon').textContent = `Weapon: ${this.weapon ? this.weapon.name : 'None'}`;
+        //print weapon ammo only when the player pick up a weapon
+        if (this.weapon){
+            document.getElementById('ammo').textContent = `Ammo: ${this.weapon.ammo}`;
+        }else{
+            document.getElementById('ammo').textContent = `Ammo: 0`;
+        }
+        // document.getElementById('ammo').textContent = `Ammo: ${this.weapon ? this.weapon.ammo : 'None'}`;
+        document.getElementById('gold').textContent = `Gold: ${this.gold}`;
+    }
+}
 
 class Weapon {
-    constructor(x, y, symbol, color, damage, range, ammo) {
+    constructor(x, y, symbol, color, damage, range, ammo, name) {
         this.x = x;
         this.y = y;
         this.symbol = symbol;
@@ -113,12 +157,32 @@ class Weapon {
         this.damage = damage;
         this.range = range;
         this.ammo = ammo;
+        this.name = name;
+
+    }
+
+    attack() {
+        if (this.ammo > 0) {
+            this.ammo--;
+            return this.damage;
+        }
+        return 0;
+    }
+
+}
+class Gold {
+    constructor(x, y, symbol, color) {
+        this.x = x;
+        this.y = y;
+        this.symbol = symbol;
+        this.color = color;
     }
 }
 
+
 class Potion {
     constructor(x, y, symbol, color, healAmount) {
-        this.x = y;
+        this.x = x;
         this.y = y;
         this.symbol = symbol;
         this.color = color;
@@ -133,14 +197,19 @@ function drawCharacter(character) {
 function drawWeapon(weapon) {
     display.draw(weapon.x, weapon.y, weapon.symbol, weapon.color);
 }
+function drawGold(gold) {
+    display.draw(gold.x, gold.y, gold.symbol, gold.color);
+}
 
 function drawPotion(potion) {
     display.draw(potion.x, potion.y, potion.symbol, potion.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
     return !mapMatrix[x][y];
 });
+
+let visibleCells = new Set(); // Store the visible cells
 
 function updateFOV() {
     var x = playerCharacter.x;
@@ -148,18 +217,40 @@ function updateFOV() {
     var visibilityRadius = 10;
     display.clear();
 
-    fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
-        if(mapMatrix[startX][startY] === 1) {
+    visibleCells.clear(); // Clear the set before recomputing
+
+    fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
+        let cellKey = startX + ',' + startY;
+        visibleCells.add(cellKey); // Add the cell to the visible set
+
+        if (mapMatrix[startX][startY] === 1) {
             display.draw(startX, startY, "#", "#653", "#320");
         } else {
             display.draw(startX, startY, ".");
         }
     });
-    
-    drawCharacter(playerCharacter);
-    if (weapon1) drawWeapon(weapon1);
-    if (weapon2) drawWeapon(weapon2);
+
+    // Only draw the character if they're visible
+    if (visibleCells.has(playerCharacter.x + ',' + playerCharacter.y)) {
+        drawCharacter(playerCharacter);
+    }
+
+    if (weapon1 && visibleCells.has(weapon1.x + ',' + weapon1.y)) {
+        drawWeapon(weapon1);
+    }
+
+    if (weapon2 && visibleCells.has(weapon2.x + ',' + weapon2.y)) {
+        drawWeapon(weapon2);
+    }
+
+    if (rat && visibleCells.has(rat.x + ',' + rat.y) && rat.isAlive()) {
+        drawCharacter(rat);
+    }
+    if (gold && visibleCells.has(gold.x + ',' + gold.y)) {
+        drawGold(gold);
+    }
 }
+
 
 function moveCharacter(character, dx, dy) {
     deleteCharacter(playerCharacter);
@@ -170,7 +261,7 @@ function moveCharacter(character, dx, dy) {
         character.x += dx;
         character.y += dy;
     }
-    updateFOV();  
+    updateFOV();
 }
 
 function deleteCharacter(character) {
@@ -192,61 +283,92 @@ function handleInput(key) {
         case 'z':
             moveCharacter(playerCharacter, 0, -1);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
             break;
         case 's':
             moveCharacter(playerCharacter, 0, 1);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
+
             break;
         case 'q':
             moveCharacter(playerCharacter, -1, 0);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
+
             break;
         case 'd':
             moveCharacter(playerCharacter, 1, 0);
             pickUpWeapon(playerCharacter);
+            pickUpGold(playerCharacter);
+
             break;
     }
-    drawCharacter(playerCharacter);
-    rat.takeTurn(); 
-    drawCharacter(rat);
+    playerCharacter.updateStats();
+
+    rat.takeTurn();
+
 }
 
 function pickUpWeapon(character) {
     if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
         character.weapon = weapon1;
         console.log(character);
-        deleteWeapon(weapon1);
+        deleteWeapon(character);
         weapon1 = null;
     } else if (weapon2 && character.x === weapon2.x && character.y === weapon2.y) {
         character.weapon = weapon2;
         console.log(character);
-        deleteWeapon(weapon2);
+        deleteWeapon(character);
         weapon2 = null;
     }
 }
 
-
-function deleteWeapon(weapon) {
-    display.draw(weapon.x, weapon.y, "");
+function deleteWeapon(character) {
+    drawCharacter(character)
 }
 
+function pickUpGold(character) {
+    if (gold && character.x === gold.x && character.y === gold.y) {
+        character.gold ++;
+        deleteGold(character);
+        gold = null;
+    }
+}
+
+function deleteGold(character) {
+    drawCharacter(character);
+}
+// draw the character at a random position
 let randomRooms = rooms[Math.floor(Math.random() * rooms.length)];
 let randomCenter = randomRooms.getCenter();
-const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red', 100, 100, 9, 5);
+
+const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red', 100, 100, 9, 5,0);
 drawCharacter(playerCharacter);
+
+// draw the rats at a random position
 let randomEnemyRoom = rooms[Math.floor(Math.random() * rooms.length)];
 let enemyCenter = randomEnemyRoom.getCenter();
-let rat = new Enemy(enemyCenter[0], enemyCenter[1], 'R', 'green', 5, 10);
+let enemies = [];
+let rat = new Enemy(enemyCenter[0], enemyCenter[1], 'R', 'green', 5, 10, 30, 30);
+enemies.push(rat);
 
+// draw the weapons at a random position
 let randomRoomsForWeapons = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
 let randomCentersForWeapons = [randomRoomsForWeapons[0].getCenter(), randomRoomsForWeapons[1].getCenter()];
 
-let weapon1 = new Weapon(randomCentersForWeapons[0][0], randomCentersForWeapons[0][1], 'G', 'blue', 30, 4, 4);
-let weapon2 = new Weapon(randomCentersForWeapons[1][0], randomCentersForWeapons[1][1], 'G', 'blue', 30, 4, 4);
+let weapon1 = new Weapon(randomCentersForWeapons[0][0], randomCentersForWeapons[0][1], 'G', 'blue', 30, 4, 4, "Gun");
+let weapon2 = new Weapon(randomCentersForWeapons[1][0], randomCentersForWeapons[1][1], 'G', 'blue', 30, 4, 4, "Gun");
+
+let randomRoomsForGold = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
+let randomCentersForGold = [randomRoomsForGold[0].getCenter(), randomRoomsForGold[1].getCenter()];
+
+let gold = new Gold(randomCentersForGold[0][0], randomCentersForGold[0][1], 'G', 'yellow');
 
 drawWeapon(weapon1);
 drawWeapon(weapon2);
 drawCharacter(rat);
+drawGold(gold);
 
 window.addEventListener('keydown', function (event) {
     handleInput(event.key);
@@ -254,16 +376,21 @@ window.addEventListener('keydown', function (event) {
 
 updateFOV();
 
-window.addEventListener('click', function(event) {
-    const x = Math.floor(event.clientX / displayOptions.fontSize);
-    const y = Math.floor(event.clientY / displayOptions.fontSize);
-    attackEnemy(playerCharacter, x, y);
-});
+window.addEventListener('click', function (event) {
+    if (!playerCharacter.weapon) {
+        console.log('no weapon');
+        return
+    };
+    const damage = playerCharacter.weapon.attack();
+    const bounds = event.target.getBoundingClientRect();
+    const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
+    const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
 
-function attackEnemy(character, x, y) {
-    if (character.weapon && Math.abs(character.x - x) <= character.weapon.range && Math.abs(character.y - y) <= character.weapon.range && character.weapon.ammo > 0) {
-        character.weapon.ammo--;
-        // Assuming that an enemy object exists and its health can be updated
-        // enemy.takeDamage(character.weapon.damage);
+    if (x === rat.x && y === rat.y) {
+        rat.takeDamage(damage);
+        console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
+        console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
+        console.log('rat has ' + rat.currentHP + ' hp left')
+        return;
     }
-}
+});
