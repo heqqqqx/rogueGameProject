@@ -1,4 +1,23 @@
-body{
-    /* background: #210044; */
-    overflow: hidden;
+body {
+    font-family: monospace;
+    background-color: #000;
+    color: #fff;
+    text-align: center;
+}
+
+#map-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+canvas {
+    border: 1px solid #fff;
+}
+
+.info {
+    margin-bottom: 10px;
+    display: inline-block;
+    width: 10rem;
 }
