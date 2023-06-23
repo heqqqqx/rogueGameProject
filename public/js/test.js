@@ -331,6 +331,7 @@ window.addEventListener('click', function(event) {
         console.log('no weapon');
         return
     };
+    const damage = playerCharacter.weapon.attack();
     const bounds = event.target.getBoundingClientRect();
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
@@ -338,7 +339,7 @@ window.addEventListener('click', function(event) {
 
 
     if (x === rat.x && y === rat.y) {
-        rat.takeDamage(playerCharacter.weapon.damage);
+        rat.takeDamage(damage);
         console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
         console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
         console.log('rat has ' + rat.currentHP + ' hp left')
