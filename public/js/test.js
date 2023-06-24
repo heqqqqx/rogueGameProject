@@ -26,7 +26,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function (x, y, value) {
+map.create(function(x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -190,6 +190,31 @@ class Potion {
     }
 }
 
+function generateEnemies(level) {
+    const enemies = [];
+
+    for (let i = 0; i < level * 2; i++) {
+        let randomEnemyRoom = rooms[Math.floor(Math.random() * rooms.length)];
+        let enemyCenter = randomEnemyRoom.getCenter();
+        let rat = new Enemy(
+            enemyCenter[0],
+            enemyCenter[1],
+            'R',
+            'green',
+            5 + level,
+            10 + level * 3,
+            30 + level * 10,
+            30 + level * 10
+        );
+
+
+        enemies.push(rat);
+    }
+
+    return enemies;
+}
+let enemies = generateEnemies(1);
+
 function drawCharacter(character) {
     display.draw(character.x, character.y, character.symbol, character.color);
 }
@@ -198,6 +223,7 @@ function drawWeapon(weapon) {
     console.log("AFFFFIIIIIIIICHERRRRRRRRRRRRRRRRRRRRRRRRRRR");
     display.draw(weapon.x, weapon.y, weapon.symbol, weapon.color);
 }
+
 function drawGold(gold) {
     display.draw(gold.x, gold.y, gold.symbol, gold.color);
 }
@@ -206,7 +232,7 @@ function drawPotion(potion) {
     display.draw(potion.x, potion.y, potion.symbol, potion.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -220,7 +246,7 @@ function updateFOV() {
 
     visibleCells.clear(); // Clear the set before recomputing
 
-    fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
+    fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
         let cellKey = startX + ',' + startY;
         visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -244,8 +270,10 @@ function updateFOV() {
         drawWeapon(weapon2);
     }
 
-    if (rat && visibleCells.has(rat.x + ',' + rat.y) && rat.isAlive()) {
-        drawCharacter(rat);
+    for (let rat of enemies) {
+        if (visibleCells.has(rat.x + ',' + rat.y) && rat.isAlive()) {
+            drawCharacter(rat);
+        }
     }
     if (gold && visibleCells.has(gold.x + ',' + gold.y)) {
         drawGold(gold);
@@ -308,7 +336,9 @@ function handleInput(key) {
     }
     playerCharacter.updateStats();
 
-    rat.takeTurn();
+    for (let rat of enemies) {
+        rat.takeTurn();
+    }
 
 }
 
@@ -353,9 +383,7 @@ drawCharacter(playerCharacter);
 let randomEnemyRoom = rooms[Math.floor(Math.random() * rooms.length)];
 let enemyX = randomEnemyRoom.getLeft() + Math.floor(Math.random() * (randomEnemyRoom.getRight() - randomEnemyRoom.getLeft() - 1));
 let enemyY = randomEnemyRoom.getTop() + Math.floor(Math.random() * (randomEnemyRoom.getBottom() - randomEnemyRoom.getTop() - 1));
-let rat = new Enemy(enemyX, enemyY, 'R', 'green', 5, 10, 30, 30);
-let enemies = [];
-enemies.push(rat);
+
 
 // Génération aléatoire des coordonnées pour les armes
 let randomRoomsForWeapons = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
@@ -380,10 +408,12 @@ let gold = new Gold(goldX, goldY, 'G', 'yellow');
 
 drawWeapon(weapon1);
 drawWeapon(weapon2);
-drawCharacter(rat);
 drawGold(gold);
-
-window.addEventListener('keydown', function (event) {
+for (let rat of enemies) {
+    drawCharacter(rat);
+    console.log("rat");
+}
+window.addEventListener('keydown', function(event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
         handleInput('z');
@@ -396,9 +426,9 @@ window.addEventListener('keydown', function (event) {
     }
 });
 
-// updateFOV();
+//updateFOV();
 
-window.addEventListener('click', function (event) {
+window.addEventListener('click', function(event) {
     if (!playerCharacter.weapon) {
         console.log('no weapon');
         return
@@ -408,11 +438,13 @@ window.addEventListener('click', function (event) {
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
 
-    if (x === rat.x && y === rat.y) {
-        rat.takeDamage(damage);
-        console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
-        console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
-        console.log('rat has ' + rat.currentHP + ' hp left')
-        return;
+    for (let rat of enemies) {
+        if (x === rat.x && y === rat.y) {
+            rat.takeDamage(damage);
+            console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
+            console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
+            console.log('rat has ' + rat.currentHP + ' hp left')
+            return;
+        }
     }
 });
