@@ -138,9 +138,9 @@ class Character {
         document.getElementById('power').textContent = `Power: ${this.power}`;
         document.getElementById('weapon').textContent = `Weapon: ${this.weapon ? this.weapon.name : 'None'}`;
         //print weapon ammo only when the player pick up a weapon
-        if (this.weapon){
+        if (this.weapon) {
             document.getElementById('ammo').textContent = `Ammo: ${this.weapon.ammo}`;
-        }else{
+        } else {
             document.getElementById('ammo').textContent = `Ammo: 0`;
         }
         // document.getElementById('ammo').textContent = `Ammo: ${this.weapon ? this.weapon.ammo : 'None'}`;
@@ -195,6 +195,7 @@ function drawCharacter(character) {
 }
 
 function drawWeapon(weapon) {
+    console.log("AFFFFIIIIIIIICHERRRRRRRRRRRRRRRRRRRRRRRRRRR");
     display.draw(weapon.x, weapon.y, weapon.symbol, weapon.color);
 }
 function drawGold(gold) {
@@ -253,9 +254,10 @@ function updateFOV() {
 
 
 function moveCharacter(character, dx, dy) {
-    deleteCharacter(playerCharacter);
+    deleteCharacter(character);
     if (isCollision(character.x + dx, character.y + dy)) {
         console.log("collision");
+        drawCharacter(character);
         return;
     } else {
         character.x += dx;
@@ -330,7 +332,7 @@ function deleteWeapon(character) {
 
 function pickUpGold(character) {
     if (gold && character.x === gold.x && character.y === gold.y) {
-        character.gold ++;
+        character.gold++;
         deleteGold(character);
         gold = null;
     }
@@ -343,27 +345,38 @@ function deleteGold(character) {
 let randomRooms = rooms[Math.floor(Math.random() * rooms.length)];
 let randomCenter = randomRooms.getCenter();
 
-const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red', 100, 100, 9, 5,0);
+const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red', 100, 100, 9, 5, 0);
 drawCharacter(playerCharacter);
 
 // draw the rats at a random position
+// Génération aléatoire des coordonnées pour l'ennemi
 let randomEnemyRoom = rooms[Math.floor(Math.random() * rooms.length)];
-let enemyCenter = randomEnemyRoom.getCenter();
+let enemyX = randomEnemyRoom.getLeft() + Math.floor(Math.random() * (randomEnemyRoom.getRight() - randomEnemyRoom.getLeft() - 1));
+let enemyY = randomEnemyRoom.getTop() + Math.floor(Math.random() * (randomEnemyRoom.getBottom() - randomEnemyRoom.getTop() - 1));
+let rat = new Enemy(enemyX, enemyY, 'R', 'green', 5, 10, 30, 30);
 let enemies = [];
-let rat = new Enemy(enemyCenter[0], enemyCenter[1], 'R', 'green', 5, 10, 30, 30);
 enemies.push(rat);
 
-// draw the weapons at a random position
+// Génération aléatoire des coordonnées pour les armes
 let randomRoomsForWeapons = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
-let randomCentersForWeapons = [randomRoomsForWeapons[0].getCenter(), randomRoomsForWeapons[1].getCenter()];
 
-let weapon1 = new Weapon(randomCentersForWeapons[0][0], randomCentersForWeapons[0][1], 'G', 'blue', 30, 4, 4, "Gun");
-let weapon2 = new Weapon(randomCentersForWeapons[1][0], randomCentersForWeapons[1][1], 'G', 'blue', 30, 4, 4, "Gun");
+let weapon1Room = randomRoomsForWeapons[0];
+let weapon1X = weapon1Room.getLeft() + Math.floor(Math.random() * (weapon1Room.getRight() - weapon1Room.getLeft() - 1));
+let weapon1Y = weapon1Room.getTop() + Math.floor(Math.random() * (weapon1Room.getBottom() - weapon1Room.getTop() - 1));
+let weapon1 = new Weapon(weapon1X, weapon1Y, 'G', 'blue', 30, 4, 4, "Gun");
 
-let randomRoomsForGold = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
-let randomCentersForGold = [randomRoomsForGold[0].getCenter(), randomRoomsForGold[1].getCenter()];
+let weapon2Room = randomRoomsForWeapons[1];
+let weapon2X = weapon2Room.getLeft() + Math.floor(Math.random() * (weapon2Room.getRight() - weapon2Room.getLeft() - 1));
+let weapon2Y = weapon2Room.getTop() + Math.floor(Math.random() * (weapon2Room.getBottom() - weapon2Room.getTop() - 1));
+let weapon2 = new Weapon(weapon2X, weapon2Y, 'G', 'blue', 30, 4, 4, "Gun");
 
-let gold = new Gold(randomCentersForGold[0][0], randomCentersForGold[0][1], 'G', 'yellow');
+// Génération aléatoire des coordonnées pour l'or
+let randomGoldRoom = rooms[Math.floor(Math.random() * rooms.length)];
+let goldX = randomGoldRoom.getLeft() + Math.floor(Math.random() * (randomGoldRoom.getRight() - randomGoldRoom.getLeft() - 1));
+let goldY = randomGoldRoom.getTop() + Math.floor(Math.random() * (randomGoldRoom.getBottom() - randomGoldRoom.getTop() - 1));
+let gold = new Gold(goldX, goldY, 'G', 'yellow');
+
+
 
 drawWeapon(weapon1);
 drawWeapon(weapon2);
@@ -371,10 +384,19 @@ drawCharacter(rat);
 drawGold(gold);
 
 window.addEventListener('keydown', function (event) {
-    handleInput(event.key);
+    let key = event.key.toLowerCase();
+    if (key === 'arrowup' || key === 'z') {
+        handleInput('z');
+    } else if (key === 'arrowdown' || key === 's') {
+        handleInput('s');
+    } else if (key === 'arrowleft' || key === 'q') {
+        handleInput('q');
+    } else if (key === 'arrowright' || key === 'd') {
+        handleInput('d');
+    }
 });
 
-updateFOV();
+// updateFOV();
 
 window.addEventListener('click', function (event) {
     if (!playerCharacter.weapon) {
