@@ -31,10 +31,8 @@ map.create(function(x, y, value) {
     }
 });
 
-
 function getRandomWalkableCoordinate() {
     var walkableCoordinates = [];
-
     for (var x = 0; x < mapWidth; x++) {
         for (var y = 0; y < mapHeight; y++) {
             if (mapMatrix[x][y] === 0) {
@@ -42,17 +40,12 @@ function getRandomWalkableCoordinate() {
             }
         }
     }
-
     if (walkableCoordinates.length > 0) {
         var randomCoordinateIndex = Math.floor(Math.random() * walkableCoordinates.length);
         return walkableCoordinates[randomCoordinateIndex];
     }
-
     return null; // Retourne null s'il n'y a pas de coordonnées où marcher
 }
-
-
-
 
 class Enemy {
     constructor(x, y, symbol, color, sightRadius, damage, maxHP, currentHP) {
@@ -65,6 +58,7 @@ class Enemy {
         this.maxHP = maxHP;
         this.currentHP = currentHP;
     }
+
     takeTurn() {
         if (!this.isAlive()) {
             return;
@@ -103,6 +97,7 @@ class Enemy {
         return this.currentHP > 0;
     }
 }
+
 class Character {
     constructor(x, y, symbol, color, maxHP, currentHP, defense, power, gold) {
         this.x = x;
@@ -120,8 +115,7 @@ class Character {
         if (this.defense > 10) this.defense = 11;
     }
 
-    takeDamage(damage) {
-        //
+    PlayerTakeDamage(damage) {
         this.currentHP -= damage * (1 - this.defense / 11);
         if (this.currentHP < 0) this.currentHP = 0;
     }
@@ -193,7 +187,14 @@ class Gold {
     }
 }
 
-
+class Stairs {
+    constructor(x, y, symbol, color) {
+        this.x = x;
+        this.y = y;
+        this.symbol = symbol;
+        this.color = color;
+    }
+}
 class Potion {
     constructor(x, y, symbol, color, healAmount) {
         this.x = x;
@@ -248,6 +249,12 @@ function generateWeapon(level) {
     return weapons;
 }
 
+function generateStairs() {
+    let stairsCoordinates = getRandomWalkableCoordinate();
+    let stairs = new Stairs(stairsCoordinates.x,
+        stairsCoordinates.y, ">", "white");
+    return stairs;
+}
 
 function drawCharacter(character) {
     display.draw(character.x, character.y, character.symbol, character.color);
@@ -263,6 +270,10 @@ function drawGold(gold) {
 
 function drawPotion(potion) {
     display.draw(potion.x, potion.y, potion.symbol, potion.color);
+}
+
+function drawStairs(stairs) {
+    display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
 }
 
 var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
@@ -296,11 +307,6 @@ function updateFOV() {
     if (visibleCells.has(playerCharacter.x + ',' + playerCharacter.y)) {
         drawCharacter(playerCharacter);
     }
-
-
-    // if (weapon2 && visibleCells.has(weapon2.x + ',' + weapon2.y)) {
-    //     drawWeapon(weapon2);
-    // }
     for (let w of weapons) {
         if (visibleCells.has(w.x + ',' + w.y)) {
             drawCharacter(w);
@@ -314,6 +320,7 @@ function updateFOV() {
     if (gold && visibleCells.has(gold.x + ',' + gold.y)) {
         drawGold(gold);
     }
+
 }
 
 function getEnemy(x, y) {
@@ -325,17 +332,44 @@ function getEnemy(x, y) {
     return null;
 }
 
+// function moveCharacter(character, dx, dy) {
+//     deleteCharacter(character);
+//     if (isCollision(character.x + dx, character.y + dy)) {
+//         drawCharacter(character);
+//         return;
+//     } else {
+//         character.x += dx;
+//         character.y += dy;
+//     }
+//     updateFOV();
+// }
+
 function moveCharacter(character, dx, dy) {
-    deleteCharacter(character);
-    if (isCollision(character.x + dx, character.y + dy)) {
-        drawCharacter(character);
-        return;
-    } else {
-        character.x += dx;
-        character.y += dy;
+    const newX = character.x + dx;
+    const newY = character.y + dy;
+    const damage = character.power;
+    if (isCollision(newX, newY)) {
+        return; // Collision with map boundaries or walls, cannot move
     }
+
+    if (isCollisionWithEnemy(newX, newY)) {
+        for (let rat of enemies) {
+            if (rat.x === newX && rat.y === newY) {
+                rat.takeDamage(damage);
+                console.log("hp du rat :" + rat.currentHP);
+                return;
+            }
+
+
+        }
+
+    }
+    deleteCharacter(character);
+    character.x = newX;
+    character.y = newY;
     updateFOV();
 }
+
 
 function deleteCharacter(character) {
     display.draw(character.x, character.y, "");
@@ -389,38 +423,12 @@ function handleInput(key) {
     }
     playerCharacter.updateStats();
 
+
     for (let rat of enemies) {
         rat.takeTurn();
     }
 }
 
-
-// function pickUpWeapon(character) {
-//     if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
-//         if (!character.weapon) {
-//             character.weapon = weapon1;
-//             character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
-//         } else {
-//             character.weapon.ammo += 4; // Ajoute 4 balles à l'arme existante
-//         }
-
-//         console.log(character);
-//         deleteWeapon(character);
-//         weapon1 = null;
-
-//     }
-//     else if (weapon2 && character.x === weapon2.x && character.y === weapon2.y) {
-//         if (character.weapon) {
-//             console.log("character.weapon : " + character.weapon);
-//             character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
-//         } else {
-//             character.weapon = weapon2;
-//         }
-//         console.log(character);
-//         deleteWeapon(character);
-//         weapon2 = null;
-//     }
-// }
 
 function pickUpWeapon(character) {
     for (let i = 0; i < weapons.length; i++) {
@@ -441,7 +449,6 @@ function pickUpWeapon(character) {
     }
 }
 
-
 function deleteWeapon(character) {
     drawCharacter(character)
 }
@@ -455,12 +462,45 @@ function pickUpGold(character) {
     }
 }
 
-
 function deleteGold(character) {
     drawCharacter(character);
 }
 
+function generateNewLevel() {
+    level++;
 
+    map = new ROT.Map.Rogue(mapWidth, mapHeight);
+
+    mapContainer.innerHTML = '';
+
+    mapMatrix = [];
+
+    map.create(function(x, y, value) {
+        if (!mapMatrix[x]) {
+            mapMatrix[x] = [];
+        }
+        mapMatrix[x][y] = value;
+        if (value) {
+            display.draw(x, y, "#", "#653", "#320");
+        } else {
+            display.draw(x, y, "");
+        }
+    });
+
+    regenerateEntities();
+
+    for (let rat of enemies) {
+        drawCharacter(rat);
+    }
+    for (let weapon of weapons) {
+        drawWeapon(weapon);
+    }
+}
+
+function regenerateEntities() {
+    enemies = generateEnemies(level);
+    weapons = generateWeapon(level);
+}
 
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
 let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 0, 0);
@@ -468,29 +508,16 @@ let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacte
 let goldCoordinates = getRandomWalkableCoordinate();
 let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
 
-var ratCoordinates = getRandomWalkableCoordinate();
-var rat = new Enemy(ratCoordinates.x, ratCoordinates.y, 'R', 'red', 5, 5, 10, 10);
-
-
-// let weapon1Coordinates = getRandomWalkableCoordinate();
-// let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
-// weapons.push(weapon1);
-// let weapon2Coordinates = getRandomWalkableCoordinate();
-// let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
-// weapons.push(weapon2);
-
-
-
-let enemies = generateEnemies(level);
+let enemies = generateEnemies(5);
 let weapons = generateWeapon(level);
-
-
-
-
 
 for (let rat of enemies) {
     drawCharacter(rat);
 }
+
+let stairs = generateStairs();
+drawStairs(stairs);
+
 drawCharacter(playerCharacter);
 drawGold(gold);
 for (let weapon of weapons) {
@@ -522,7 +549,7 @@ window.addEventListener('click', function(event) {
     const bounds = event.target.getBoundingClientRect();
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
-
+    playerCharacter.updateStats();
     for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
             rat.takeDamage(damage);
@@ -536,11 +563,10 @@ window.addEventListener('click', function(event) {
                     console.log("unlucky, you didn't find gold on this racoon")
                 }
             }
-
-
             console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage');
             console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left');
             console.log('rat has ' + rat.currentHP + ' hp left');
+
             return;
         }
     }
