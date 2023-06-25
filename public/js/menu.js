@@ -1,6 +1,6 @@
 var menuOptions = [
-    "1. Start New Game",
-    "2. Load Previous Game"
+    "1. Start the Game",
+
 ];
 
 var menuMap = [
@@ -8,11 +8,11 @@ var menuMap = [
     "#                                 #",
     "#                                 #",
     "#                                 #",
-    "#          ASCII ROGUE            #",
+    "#          Welcome to the         #",
+    "#        Cramptés's Dungeon       #",
     "#                                 #",
+    "#       " + menuOptions[0] + "         #",
     "#                                 #",
-    "#       " + menuOptions[0] + "        #",
-    "#       " + menuOptions[1] + "     #",
     "#                                 #",
     "#                                 #",
     "###################################"
@@ -48,8 +48,6 @@ window.addEventListener("keydown", function(event) {
         // Start New Game
         menuContainer.innerHTML = "";
         startNewGame();
-    } else if (event.key === "2") {
-        window.location.href = "/load";
     }
 });
 
