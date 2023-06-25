@@ -14,7 +14,6 @@ var displayOptions = {
     fg: "#fff"
 };
 var display = new ROT.Display(displayOptions);
-
 var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
@@ -145,13 +144,13 @@ class Character {
         document.getElementById('defense').textContent = `Defense: ${this.defense}`;
         document.getElementById('power').textContent = `Power: ${this.power}`;
         document.getElementById('weapon').textContent = `Weapon: ${this.weapon ? this.weapon.name : 'None'}`;
+        document.getElementById('niveau').textContent = `Niveau: ${level}`;
         //print weapon ammo only when the player pick up a weapon
         if (this.weapon) {
             document.getElementById('ammo').textContent = `Ammo: ${this.weapon.ammo}`;
         } else {
             document.getElementById('ammo').textContent = `Ammo: 0`;
         }
-        // document.getElementById('ammo').textContent = `Ammo: ${this.weapon ? this.weapon.ammo : 'None'}`;
         document.getElementById('gold').textContent = `Gold: ${this.gold}`;
     }
 }
@@ -220,7 +219,6 @@ function generateEnemies(level) {
             30 + level * 10,
             30 + level * 10
         );
-        console.log(rat);
         enemies.push(rat);
     }
 
@@ -452,8 +450,10 @@ function handleInput(key) {
 
             break;
         case 'enter':
-            if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {}
-            playerCharacter.updateStats();
+            if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {
+                generateNewLevel();
+            }
+
     }
     playerCharacter.updateStats();
     for (let rat of enemies) {
@@ -503,12 +503,18 @@ function deleteRat(character) {
 }
 
 function generateNewLevel() {
+    console.log("generating new level")
     level++;
 
     map = new ROT.Map.Rogue(mapWidth, mapHeight);
+    console.log(display);
 
+    var mapContainer = document.getElementById("map-container");
     mapContainer.innerHTML = '';
 
+    mapContainer.appendChild(display.getContainer());
+    var mapMatrix = [];
+    console.log(display);
     mapMatrix = [];
 
     map.create(function(x, y, value) {
@@ -524,14 +530,38 @@ function generateNewLevel() {
     });
 
     regenerateEntities();
+    console.log("regenerating entities")
+
+    displayOptions.width = mapWidth;
+    displayOptions.height = mapHeight;
+    display.setOptions(displayOptions);
 
     for (let rat of enemies) {
+        console.log(rat)
         drawCharacter(rat);
     }
     for (let weapon of weapons) {
+        console.log(weapon)
         drawWeapon(weapon);
     }
+
+    playerCharacterCoordinates = getRandomWalkableCoordinate();
+    playerCharacter.x = playerCharacterCoordinates.x;
+    playerCharacter.y = playerCharacterCoordinates.y;
+    console.log(playerCharacter)
+
+    goldCoordinates = getRandomWalkableCoordinate();
+    gold.x = goldCoordinates.x;
+    gold.y = goldCoordinates.y;
+
+    stairs = generateStairs();
+    drawStairs(stairs);
+
+    drawCharacter(playerCharacter);
+    drawGold(gold);
+
 }
+
 
 function regenerateEntities() {
     enemies = generateEnemies(level);
@@ -544,8 +574,8 @@ let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacte
 let goldCoordinates = getRandomWalkableCoordinate();
 let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
 
-let enemies = generateEnemies(4);
-let weapons = generateWeapon(4);
+let enemies = generateEnemies(level);
+let weapons = generateWeapon(level);
 
 for (let rat of enemies) {
     drawCharacter(rat);
