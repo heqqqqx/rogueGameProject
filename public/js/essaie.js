@@ -20,12 +20,15 @@ function loadGame() {
         console.log(saveData.stairs)
         console.log("golds : " + saveData.golds)
         console.log(saveData.level)
+        console.log(saveData.pnj)
         mapMatrix = saveData.mapMatrix;
         playerCharacter = Object.assign(new Character(), saveData.playerCharacter);
         enemies = saveData.enemies.map(enemyData => Object.assign(new Enemy(), enemyData));
         weapons = saveData.weapons.map(weaponData => Object.assign(new Weapon(), weaponData));
         stairs = Object.assign(new Stairs(), saveData.stairs);
         golds = saveData.golds.map(goldData => Object.assign(new Gold(), goldData));
+        level = saveData.level;
+        pnj = Object.assign(new PNJ(), saveData.pnj);
         console.log('Game loaded successfully.');
 
     };
@@ -352,7 +355,7 @@ function drawGold(gold) {
 }
 
 function drawPNJ(pnj) {
-    display.draw(pnj.x, pnj.y, pnj.symbol, pnj.color,pnj.name);
+    display.draw(pnj.x, pnj.y, pnj.symbol, pnj.color, pnj.name);
 }
 
 
@@ -580,6 +583,7 @@ function saveGame() {
         weapons: weapons,
         stairs: stairs,
         golds: golds,
+        pnj: pnj,
         level: level,
     };
 
