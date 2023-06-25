@@ -758,4 +758,3 @@ window.addEventListener('click', function(event) {
 
 
 });
-export { PNJ };
