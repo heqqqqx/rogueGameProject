@@ -206,14 +206,16 @@ function generateEnemies(level) {
             30 + level * 10,
             30 + level * 10
         );
-
-
         enemies.push(rat);
     }
 
     return enemies;
 }
-let enemies = generateEnemies(1);
+
+let enemies = generateEnemies(15);
+
+
+
 
 function drawCharacter(character) {
     display.draw(character.x, character.y, character.symbol, character.color);
@@ -441,6 +443,8 @@ window.addEventListener('click', function(event) {
     for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
             rat.takeDamage(damage);
+
+
             console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
             console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
             console.log('rat has ' + rat.currentHP + ' hp left')
