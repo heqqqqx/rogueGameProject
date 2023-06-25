@@ -1,3 +1,5 @@
+
+
 document.getElementById('file-input').addEventListener('change', loadGame);
 
 function loadGame() {
@@ -237,45 +239,38 @@ class PNJ {
     }
 
     exchangeGoldForHP(character) {
-        const goldCosts = {
-            2: 10,
-            5: 20,
-            10: 40,
-            20: 100
+        const goldForHP = {
+          2: 10,
+          5: 20,
+          10: 40,
+          20: 100
         };
-
-        console.log("How many HP do you want to regain?");
-        console.log("1. 10 HP - 2 gold");
-        console.log("2. 20 HP - 5 gold");
-        console.log("3. 40 HP - 10 gold");
-        console.log("4. 100 HP - 20 gold");
-
-        const readline = require("readline");
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
-
-        rl.question("Enter your choice: ", choice => {
-            rl.close();
-            const goldCost = goldCosts[choice];
-
-            if (goldCost !== undefined) {
-                if (character.gold >= goldCost) {
-                    const hpGain = goldCost / 2;
-                    character.gold -= goldCost;
-                    character.heal(hpGain);
-
-                    console.log(`Exchanged ${goldCost} gold for ${hpGain} HP.`);
-                    console.log(`Current HP: ${character.currentHP}`);
-                } else {
-                    console.log("Not enough gold to perform the exchange.");
-                }
-            } else {
-                console.log("Invalid choice.");
-            }
-        });
-    }
+           
+        const choice = prompt("Vous pouvez choisir entre ces propositions :\n"+
+        "2 golds pour 10 HP\n"+
+        "5 golds pour 20 HP\n"+
+        "10 golds pour 40 HP\n"+
+        "20 golds pour 100 HP\n"+
+        "Entrer votre choix (2, 5, 10, 20) : ");
+        const goldCost = goldForHP[choice];
+        console.log("vous avez choisi "+choice+" golds pour "+goldCost+" HP "+goldForHP[choice]);
+      
+        if (choice !== undefined && goldForHP[choice] !== undefined) {
+          if (character.gold >= choice) {
+            const hpGain = goldForHP[choice];
+            character.gold -= choice;
+            character.heal(hpGain);
+      
+            console.log(`Exchanged ${choice} gold for ${hpGain} HP, il vous reste ${character.gold} gold.`);
+            console.log(`Current HP: ${character.currentHP}`);
+          } else {
+            console.log("Not enough gold to perform the exchange.");
+          }
+        } else {
+          console.log("Invalid choice.");
+        }
+      }
+      
 }
 
 
@@ -450,6 +445,11 @@ function moveCharacter(character, dx, dy) {
         }
 
         updateFOV();
+        return;
+    }
+    if(pnj.x == newX && pnj.y == newY){
+        console.log("hello");
+        pnj.exchangeGoldForHP(character);
         return;
     }
 
@@ -666,7 +666,7 @@ function regenerateEntities() {
 }
 
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
-let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 100, 0);
+let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 10, 1, 100, 100);
 
 let pnjCoordinates = getRandomWalkableCoordinate();
 let pnj = new PNJ(pnjCoordinates.x, pnjCoordinates.y, 'P', 'white', "Marchand de coeur");
@@ -754,3 +754,4 @@ window.addEventListener('click', function(event) {
 
 
 });
+export { PNJ };
