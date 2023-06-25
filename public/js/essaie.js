@@ -8,7 +8,7 @@ function loadGame() {
     console.log('File selected.');
     const file = event.target.files[0];
     const reader = new FileReader();
-    reader.onload = function (event) {
+    reader.onload = function(event) {
         const saveDataJson = event.target.result;
         const saveData = JSON.parse(saveDataJson);
         console.log(saveData.enemies)
@@ -109,7 +109,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function (x, y, value) {
+map.create(function(x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -247,6 +247,7 @@ class Character {
         document.getElementById('gold').textContent = `Gold: ${this.gold}`;
     }
 }
+
 function CharacterStatus(character) {
     if (!character.isAlive()) {
         fetch('/gameover')
@@ -329,6 +330,8 @@ class PNJ {
             "20 golds pour 100 HP\n" +
             "Entrer votre choix (2, 5, 10, 20) : ");
         const goldCost = goldForHP[choice];
+        create_message("Vous avez choisi " + choice + " golds pour " + goldCost + " HP " + goldForHP[choice]);
+        maConsole.render();
         console.log("vous avez choisi " + choice + " golds pour " + goldCost + " HP " + goldForHP[choice]);
 
         if (choice !== undefined && goldForHP[choice] !== undefined) {
@@ -336,13 +339,19 @@ class PNJ {
                 const hpGain = goldForHP[choice];
                 character.gold -= choice;
                 character.heal(hpGain);
-
+                create_message(`Exchanged ${choice} gold for ${hpGain} HP, il vous reste ${character.gold} gold.`);
+                create_message(`Current HP: ${character.currentHP}`);
+                maConsole.render();
                 console.log(`Exchanged ${choice} gold for ${hpGain} HP, il vous reste ${character.gold} gold.`);
                 console.log(`Current HP: ${character.currentHP}`);
             } else {
+                create_message("Not enough gold to perform the exchange.");
+                maConsole.render();
                 console.log("Not enough gold to perform the exchange.");
             }
         } else {
+            create_message("Invalid choice.");
+            maConsole.render();
             console.log("Invalid choice.");
         }
     }
@@ -436,7 +445,7 @@ function drawStairs(stairs) {
     display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -449,7 +458,7 @@ function updateFOV() {
     display.clear();
     visibleCells.clear(); // Clear the set before recomputing
     try {
-        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
+        fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
             visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -460,7 +469,7 @@ function updateFOV() {
             }
         });
     } catch (e) {
-        // console.log(e);
+        console.log(e);
     }
 
     // Only draw the character if they're visible
@@ -519,6 +528,8 @@ function moveCharacter(character, dx, dy) {
             if (!rat.isAlive()) {
                 const index = enemies.indexOf(rat);
                 enemies.splice(index, 1);
+                create_message("Rat killed!");
+                maConsole.render();
                 console.log("Rat killed!");
             }
 
@@ -619,7 +630,8 @@ function pickUpWeapon(character) {
             } else {
                 character.weapon.ammo += 4;
             }
-
+            create_message("Weapon picked up! Ammo : " + character.weapon.ammo);
+            maConsole.render();
             console.log(character);
             deleteWeapon(character);
             weapons.splice(i, 1);
@@ -638,6 +650,8 @@ function pickUpGold(character) {
         const gold = golds[i];
         if (character.x === gold.x && character.y === gold.y) {
             character.gold += 1;
+            create_message("Gold picked up! Gold : " + character.gold);
+            maConsole.render();
             console.log(character);
             deleteWeapon(character);
             golds.splice(i, 1);
@@ -655,6 +669,8 @@ function deleteRat(character) {
 }
 
 function saveGame() {
+    create_message("Game saved!");
+    maConsole.render();
     console.log('Saving game...');
     const saveData = {
         mapMatrix: mapMatrix,
@@ -682,6 +698,8 @@ function saveGame() {
 
 
 function generateNewLevel() {
+    create_message("You passed a level... But will you survive the next one ?");
+    maConsole.render();
     console.log("generating new level");
     level++;
 
@@ -694,7 +712,7 @@ function generateNewLevel() {
     mapContainer.appendChild(display.getContainer());
     mapMatrix = [];
 
-    map.create(function (x, y, value) {
+    map.create(function(x, y, value) {
         if (!mapMatrix[x]) {
             mapMatrix[x] = [];
         }
@@ -777,7 +795,7 @@ drawPNJ(pnj);
 
 
 console.log(playerCharacter.gold);
-window.addEventListener('keydown', function (event) {
+window.addEventListener('keydown', function(event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
         handleInput('z');
@@ -796,35 +814,47 @@ window.addEventListener('keydown', function (event) {
 
 // updateFOV();
 
-window.addEventListener('click', function (event) {
+window.addEventListener('click', function(event) {
 
     if (!playerCharacter.weapon) {
         console.log('no weapon');
         return
     };
+
     const damage = playerCharacter.weapon.attack();
     const bounds = event.target.getBoundingClientRect();
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
-    // playerCharacter.updateStats();
+    create_message("You used one ammo. " + playerCharacter.weapon.ammo + " ammo left.");
+    playerCharacter.updateStats();
+    maConsole.render();
     for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
-            console.log(enemies.length)
 
             rat.takeDamage(damage);
             rat.takeTurn();
             if (!rat.isAlive()) {
                 enemies.splice(rat, 1);
+                create_message("You hitted a rat for " + playerCharacter.weapon.damage + " damage. Rat has " + rat.currentHP + " hp left.");
+                create_message("There are currently " + enemies.length + " enemies left.");
+                maConsole.render();
+                console.log(enemies.length)
+
 
                 if (Math.random() < 0.75) {
-                    playerCharacter.gold++;
+                    playerCharacter.gold + level;
                     playerCharacter.updateStats();
                     updateFOV();
+                    create_message("Lucky you ! You found gold on the rat ! Total gold picked up: " + level + " golds.");
+                    maConsole.render();
                     console.log("you found gold on the ragondin")
+                    break;
                 } else {
+                    updateFOV();
+                    create_message("Unlucky, you didn't find gold on this rat.");
+                    maConsole.render();
                     console.log("unlucky, you didn't find gold on this racoon")
                 }
-                console.log(enemies.length)
                 console.log("rat mort gun");
             }
 
@@ -835,4 +865,4 @@ window.addEventListener('click', function (event) {
         }
     }
     updateFOV();
-
+});
