@@ -35,8 +35,6 @@ canvas {
 }
 
 .console-canva {
-    /* display: flex; */
-    /* flex-direction: column; */
     margin-left: 5px;
     width: 80%;
     height: 130px;

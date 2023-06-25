@@ -30,6 +30,8 @@ function loadGame() {
 
     };
     reader.readAsText(file);
+    create_message('Successfully loaded your game. Use movement keys to update the map.', '#008000 ', '#000');
+    maConsole.render();
 }
 
 function create_message(text, fg_color, bg_color) {
@@ -52,7 +54,7 @@ class Console {
     init() {
         create_message('Welcome to Cramptés Dungeons!');
         create_message('Move: [Z,S,Q,D], or [←,↑,→,↓] Use: [E] (for the stairs), Shoot: [Mouse1]');
-        create_message('Reach level 6 to win the game!');
+        create_message('Finish level 5 to win the game!');
         create_message('Be aware, the more you progress, the more difficult it will be.');
         create_message('So keep an eye on your health and your ammo!');
         create_message('You can buy health potions from the PNJ, but you will need golds.');
@@ -95,7 +97,7 @@ var maxRooms = 4;
 var corridorLength = [2, 4];
 
 var map = new ROT.Map.Rogue(mapWidth, mapHeight);
-var level = 1
+var level = 1;
 var displayOptions = {
     width: mapWidth,
     height: mapHeight,
@@ -261,6 +263,7 @@ function CharacterStatus(character) {
             .catch(error => {
                 console.log('Une erreur est survenue lors de la requête Fetch :', error);
             });
+        level = 1;
         return false;
     } else {
         return true;
@@ -370,7 +373,7 @@ function generateEnemies(level) {
             'R',
             'green',
             5 + level,
-            10 + level * 3,
+            10 + (level - 1) * 3,
             30 + level * 10,
             30 + level * 10
         );
@@ -390,7 +393,7 @@ function generateWeapon(level) {
             weaponCoordinates.y,
             'W',
             'blue',
-            200,
+            30,
             10,
             0,
             "Gun"
@@ -641,7 +644,7 @@ function pickUpWeapon(character) {
 }
 
 function deleteWeapon(character) {
-    drawCharacter(character)
+    drawCharacter(character);
 }
 
 
@@ -702,6 +705,11 @@ function generateNewLevel() {
     maConsole.render();
     console.log("generating new level");
     level++;
+    if (level > 5) {
+        window.location.href = "/congrats";
+        level = 1;
+        return;
+    }
 
     map = new ROT.Map.Rogue(mapWidth, mapHeight);
     console.log(display);
@@ -768,7 +776,7 @@ function regenerateEntities() {
 }
 
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
-let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 10, 1, 100, 100);
+let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 2, 10, 0);
 
 let pnjCoordinates = getRandomWalkableCoordinate();
 let pnj = new PNJ(pnjCoordinates.x, pnjCoordinates.y, 'P', 'white', "Marchand de coeur");
