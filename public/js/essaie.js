@@ -363,7 +363,13 @@ function moveCharacter(character, dx, dy) {
                 if (!rat.isAlive()) {
                     enemies.splice(rat, 1);
                     console.log(enemies)
-                    console.log("rat mort");
+                    console.log("rat mort cac");
+                    if (Math.random() < 0.75) {
+                        playerCharacter.gold++;
+                        console.log("you found gold on the ragodin")
+                    } else {
+                        console.log("unlucky, you didn't find gold on this racoon")
+                    }
                 }
                 console.log("hp du rat :" + rat.currentHP);
                 return;
@@ -431,7 +437,7 @@ function handleInput(key) {
             if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {}
             playerCharacter.updateStats();
     }
-
+    playerCharacter.updateStats();
     for (let rat of enemies) {
         rat.takeTurn();
     }
@@ -563,22 +569,25 @@ window.addEventListener('click', function(event) {
     const bounds = event.target.getBoundingClientRect();
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
-    playerCharacter.updateStats();
     for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
             rat.takeDamage(damage);
             rat.takeTurn();
-            if (rat.currentHP <= 0) {
-                // 75% de chance de drop 1 gold
+            if (!rat.isAlive()) {
+                enemies.splice(rat, 1);
+
                 if (Math.random() < 0.75) {
                     playerCharacter.gold++;
+                    playerCharacter.updateStats();
+                    updateFOV();
                     console.log("you found gold on the ragodin")
                 } else {
                     console.log("unlucky, you didn't find gold on this racoon")
                 }
-                enemies.splice(rat, 1);
                 console.log(enemies)
+                console.log("rat mort gun");
             }
+
             console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage');
             console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left');
             console.log('rat has ' + rat.currentHP + ' hp left');
@@ -586,4 +595,5 @@ window.addEventListener('click', function(event) {
             return;
         }
     }
+
 });
