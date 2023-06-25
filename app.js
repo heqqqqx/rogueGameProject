@@ -7,7 +7,7 @@ const port = 3000;
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Endpoint pour la page principale
-app.get('/', (req, res) => {
+app.get('/game', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'test.html'));
 });
 

@@ -1,5 +1,5 @@
 var menuOptions = [
-    "1. Start the Game",
+    "[A]. Start the Game",
 
 ];
 
@@ -11,7 +11,7 @@ var menuMap = [
     "#          Welcome to the         #",
     "#        Cramptés's Dungeon       #",
     "#                                 #",
-    "#       " + menuOptions[0] + "         #",
+    "#       " + menuOptions[0] + "       #",
     "#                                 #",
     "#                                 #",
     "#                                 #",
@@ -44,9 +44,9 @@ drawMenu();
 
 // Handle keypress event in the menu
 window.addEventListener("keydown", function(event) {
-    if (event.key === "1") {
+    if (event.key === "a") {
         // Start New Game
-        menuContainer.innerHTML = "";
+        menuContainer.innerHTML = "a";
         startNewGame();
     }
 });
