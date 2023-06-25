@@ -5,6 +5,13 @@ body {
     text-align: center;
 }
 
+#game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
 #map-container {
     display: flex;
     justify-content: center;
@@ -14,6 +21,7 @@ body {
 
 canvas {
     border: 1px solid #fff;
+    margin-left: 100px;
 }
 
 .info {
@@ -22,16 +30,19 @@ canvas {
     width: 10rem;
 }
 
+#console {
+    margin-left: 10px;
+}
+
 .console-canva {
-    /* display: flex; */
-    /* flex-direction: column; */
-    width: 100%;
+    margin-left: 5px;
+    width: 80%;
     height: 130px;
     background-color: rgb(74, 74, 75);
 }
 
 .file-label {
-    margin: 25px;
+    margin: 10px;
     display: inline-block;
     padding: 10px 20px;
     background-color: #e9e9e9;
