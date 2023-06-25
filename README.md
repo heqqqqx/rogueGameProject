@@ -1,7 +1,7 @@
 # rogueGameProject
 #### Our project submission for the small project of mastercamp. Using js and rot.js library.
 
-## to run our project : 
+## To run our project : 
 
 
 #### npm i path
