@@ -1,11 +1,9 @@
-
-
 document.getElementById('file-input').addEventListener('change', loadGame);
 
 function loadGame() {
-    console.log('Loading game...');
+    create_message('Loading game...', '#fff', '#000');
+    maConsole.render();
     const fileInput = document.getElementById('file-input');
-    console.log('Waiting for file selection...')
 
     console.log('File selected.');
     const file = event.target.files[0];
@@ -29,12 +27,67 @@ function loadGame() {
         golds = saveData.golds.map(goldData => Object.assign(new Gold(), goldData));
         level = saveData.level;
         pnj = Object.assign(new PNJ(), saveData.pnj);
-        console.log('Game loaded successfully.');
 
     };
     reader.readAsText(file);
 }
 
+function create_message(text, fg_color, bg_color) {
+    var msg = {
+        text: text,
+        fg: fg_color || '#fff',
+        bg: bg_color || '#000',
+    };
+    maConsole.add_message(msg);
+}
+
+class Console {
+    constructor(display, size) {
+        this.display = display;
+        this.buffer = [];
+        this.buffer_size = size;
+        this.cursor = 0;
+    }
+
+    init() {
+        create_message('Welcome to Cramptés Dungeons!');
+        create_message('Move: [Z,S,Q,D], or [←,↑,→,↓] Use: [E] (for the stairs), Shoot: [Mouse1]');
+        create_message('Reach level 6 to win the game!');
+        create_message('Be aware, the more you progress, the more difficult it will be.');
+        create_message('So keep an eye on your health and your ammo!');
+        create_message('You can buy health potions from the PNJ, but you will need golds.');
+        create_message('So don\'t forget to pick up the golds you find on the ground, and to kill those rats!');
+        create_message('You just arrived in a dungeon. ', '#880808', '#000');
+        create_message('There are rats nearby...', '#880808', '#000');
+    }
+
+    clear_buffer() {
+        this.buffer = [];
+        this.cursor = 0;
+        this.display.innerHTML = '';
+    }
+
+    add_message(message) {
+        this.buffer[this.cursor % this.buffer_size] = message;
+        this.cursor += 1;
+    }
+
+    render() {
+        this.display.innerHTML = '';
+        for (var i = 0; i < this.buffer_size; i++) {
+            var index = (this.cursor + i) % this.buffer_size;
+            var consoleLine = document.createElement('pre');
+            consoleLine.style.color = this.buffer[index].fg;
+            consoleLine.style.backgroundColor = this.buffer[index].bg;
+            consoleLine.textContent = this.buffer[index].text;
+            this.display.appendChild(consoleLine);
+        }
+    }
+}
+
+var maConsole = new Console(document.getElementById('console'), 8);
+maConsole.init();
+maConsole.render();
 
 var mapWidth = 120;
 var mapHeight = 60;
@@ -111,6 +164,8 @@ class Enemy {
                 Math.abs(this.y - playerCharacter.y) <= 1) {
                 playerCharacter.currentHP -= this.damage * (1 - playerCharacter.defense / 10);
                 if (playerCharacter.currentHP < 0) playerCharacter.currentHP = 0;
+                create_message('The rat bites you for ' + this.damage * (1 - playerCharacter.defense / 10) + ' damage ! You now have ' + playerCharacter.currentHP + ' HP left.', '#880808', '#000');
+                maConsole.render();
                 console.log(`Player HP: ${playerCharacter.currentHP}`);
             } else {
                 let dx = Math.sign(playerCharacter.x - this.x);
@@ -243,37 +298,37 @@ class PNJ {
 
     exchangeGoldForHP(character) {
         const goldForHP = {
-          2: 10,
-          5: 20,
-          10: 40,
-          20: 100
+            2: 10,
+            5: 20,
+            10: 40,
+            20: 100
         };
-           
-        const choice = prompt("Vous pouvez choisir entre ces propositions :\n"+
-        "2 golds pour 10 HP\n"+
-        "5 golds pour 20 HP\n"+
-        "10 golds pour 40 HP\n"+
-        "20 golds pour 100 HP\n"+
-        "Entrer votre choix (2, 5, 10, 20) : ");
+
+        const choice = prompt("Vous pouvez choisir entre ces propositions :\n" +
+            "2 golds pour 10 HP\n" +
+            "5 golds pour 20 HP\n" +
+            "10 golds pour 40 HP\n" +
+            "20 golds pour 100 HP\n" +
+            "Entrer votre choix (2, 5, 10, 20) : ");
         const goldCost = goldForHP[choice];
-        console.log("vous avez choisi "+choice+" golds pour "+goldCost+" HP "+goldForHP[choice]);
-      
+        console.log("vous avez choisi " + choice + " golds pour " + goldCost + " HP " + goldForHP[choice]);
+
         if (choice !== undefined && goldForHP[choice] !== undefined) {
-          if (character.gold >= choice) {
-            const hpGain = goldForHP[choice];
-            character.gold -= choice;
-            character.heal(hpGain);
-      
-            console.log(`Exchanged ${choice} gold for ${hpGain} HP, il vous reste ${character.gold} gold.`);
-            console.log(`Current HP: ${character.currentHP}`);
-          } else {
-            console.log("Not enough gold to perform the exchange.");
-          }
+            if (character.gold >= choice) {
+                const hpGain = goldForHP[choice];
+                character.gold -= choice;
+                character.heal(hpGain);
+
+                console.log(`Exchanged ${choice} gold for ${hpGain} HP, il vous reste ${character.gold} gold.`);
+                console.log(`Current HP: ${character.currentHP}`);
+            } else {
+                console.log("Not enough gold to perform the exchange.");
+            }
         } else {
-          console.log("Invalid choice.");
+            console.log("Invalid choice.");
         }
-      }
-      
+    }
+
 }
 
 
@@ -445,12 +500,20 @@ function moveCharacter(character, dx, dy) {
             const index = enemies.indexOf(rat);
             enemies.splice(index, 1);
             console.log("Rat killed!");
+            if (Math.random() < 0.75) {
+                playerCharacter.gold + level;
+                playerCharacter.updateStats();
+                updateFOV();
+                console.log("you found gold on the ragondin")
+            } else {
+                console.log("unlucky, you didn't find gold on this racoon")
+            }
         }
 
         updateFOV();
         return;
     }
-    if(pnj.x == newX && pnj.y == newY){
+    if (pnj.x == newX && pnj.y == newY) {
         console.log("hello");
         pnj.exchangeGoldForHP(character);
         return;
