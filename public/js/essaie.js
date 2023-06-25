@@ -71,8 +71,6 @@ function getRandomWalkableCoordinate() {
     return null; // Retourne null s'il n'y a pas de coordonnées où marcher
 }
 
-console.log(findRandomRoomCenter());
-console.log(getRandomWalkableCoordinate());
 
 
 
@@ -248,12 +246,12 @@ function updateFOV() {
     var y = playerCharacter.y;
     var visibilityRadius = 10;
     display.clear();
-    console.log("co de x et y : " + x, y);
+    // console.log("co de x et y : " + x, y);
     visibleCells.clear(); // Clear the set before recomputing
     try {
         fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
-            console.log("co de xStart et y : " + startX, startY);
+            // console.log("co de xStart et y : " + startX, startY);
             visibleCells.add(cellKey); // Add the cell to the visible set
 
             if (mapMatrix[startX][startY] === 1) {
@@ -350,16 +348,31 @@ function handleInput(key) {
 function pickUpWeapon(character) {
     if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
         character.weapon = weapon1;
+        character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
         console.log(character);
         deleteWeapon(character);
         weapon1 = null;
     } else if (weapon2 && character.x === weapon2.x && character.y === weapon2.y) {
         character.weapon = weapon2;
+        character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
         console.log(character);
         deleteWeapon(character);
         weapon2 = null;
     }
 }
+
+// function pickUpWeapon(character) {
+//     for (let i = 0; i < weapons.length; i++) {
+//         const weapon = weapons[i];
+//         if (weapon instanceof Weapon && character.x === weapon.x && character.y === weapon.y) {
+//             character.weapon = weapon;
+//             console.log(character);
+//             deleteWeapon(character);
+//             weapons.splice(i, 1); // Supprime l'objet Weapon du tableau
+//             break; // Sort de la boucle une fois que l'arme a été ramassée
+//         }
+//     }
+// }
 
 function deleteWeapon(character) {
     drawCharacter(character)
@@ -367,11 +380,13 @@ function deleteWeapon(character) {
 
 function pickUpGold(character) {
     if (gold && character.x === gold.x && character.y === gold.y) {
-        character.gold++;
-        deleteGold(character);
+        console.log(character.gold)
+        character.gold += 1;
+        deleteGold(character); // Supprime l'or de la carte
         gold = null;
     }
 }
+
 
 function deleteGold(character) {
     drawCharacter(character);
@@ -380,7 +395,7 @@ function deleteGold(character) {
 
 
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
-let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 10, 10, 10);
+let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 10, 10, 10, 0, 0);
 
 let goldCoordinates = getRandomWalkableCoordinate();
 let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
@@ -388,11 +403,13 @@ let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
 var ratCoordinates = getRandomWalkableCoordinate();
 var rat = new Enemy(ratCoordinates.x, ratCoordinates.y, 'R', 'red', 5, 5, 10, 10);
 
-
+let weapons = [];
 let weapon1Coordinates = getRandomWalkableCoordinate();
-let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5);
+let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
+weapons.push(weapon1);
 let weapon2Coordinates = getRandomWalkableCoordinate();
-let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5);
+let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
+weapons.push(weapon2);
 
 
 drawCharacter(rat);
@@ -400,7 +417,7 @@ drawCharacter(playerCharacter);
 drawGold(gold);
 drawWeapon(weapon1);
 drawWeapon(weapon2);
-
+console.log(playerCharacter.gold);
 window.addEventListener('keydown', function (event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
