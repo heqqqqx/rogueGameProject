@@ -19,7 +19,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function(x, y, value) {
+map.create(function (x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -276,7 +276,7 @@ function drawStairs(stairs) {
     display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -289,7 +289,7 @@ function updateFOV() {
     display.clear();
     visibleCells.clear(); // Clear the set before recomputing
     try {
-        fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
+        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
             visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -337,16 +337,39 @@ function getEnemy(x, y) {
 }
 
 // function moveCharacter(character, dx, dy) {
-//     deleteCharacter(character);
-//     if (isCollision(character.x + dx, character.y + dy)) {
-//         drawCharacter(character);
-//         return;
-//     } else {
-//         character.x += dx;
-//         character.y += dy;
+//     const newX = character.x + dx;
+//     const newY = character.y + dy;
+//     const damage = character.power;
+//     if (isCollision(newX, newY)) {
+//         return; // Collision with map boundaries or walls, cannot move
 //     }
+
+//     if (isCollisionWithEnemy(newX, newY)) {
+//         for (let rat of enemies) {
+//             if (rat.x === newX && rat.y === newY) {
+//                 rat.takeDamage(damage);
+//                 if (!rat.isAlive()) {
+//                     enemies.splice(rat, 1);
+//                     console.log(enemies)
+//                     console.log("rat mort cac");
+//                     if (Math.random() < 0.75) {
+//                         playerCharacter.gold++;
+//                         console.log("you found gold on the ragodin")
+//                     } else {
+//                         console.log("unlucky, you didn't find gold on this racoon")
+//                     }
+//                 }
+//                 console.log("hp du rat :" + rat.currentHP);
+//                 return;
+//             }
+//         }
+//     }
+//     deleteCharacter(character);
+//     character.x = newX;
+//     character.y = newY;
 //     updateFOV();
 // }
+
 
 function moveCharacter(character, dx, dy) {
     const newX = character.x + dx;
@@ -355,33 +378,31 @@ function moveCharacter(character, dx, dy) {
     if (isCollision(newX, newY)) {
         return; // Collision with map boundaries or walls, cannot move
     }
-
+    let rat = getEnemy(newX, newY);
     if (isCollisionWithEnemy(newX, newY)) {
-        for (let rat of enemies) {
-            if (rat.x === newX && rat.y === newY) {
-                rat.takeDamage(damage);
-                if (!rat.isAlive()) {
-                    enemies.splice(rat, 1);
-                    console.log(enemies)
-                    console.log("rat mort cac");
-                    if (Math.random() < 0.75) {
-                        playerCharacter.gold++;
-                        console.log("you found gold on the ragodin")
-                    } else {
-                        console.log("unlucky, you didn't find gold on this racoon")
-                    }
-                }
-                console.log("hp du rat :" + rat.currentHP);
-                return;
+        rat.takeDamage(damage);
+        if (!rat.isAlive()) {
+            enemies.splice(rat, 1);
+            console.log(enemies)
+            console.log("rat mort cac");
+            if (Math.random() < 0.75) {
+                playerCharacter.gold++;
+                console.log("you found gold on the ragodin")
+            } else {
+                console.log("unlucky, you didn't find gold on this racoon")
             }
         }
+        console.log("hp du rat :" + rat.currentHP);
+        updateFOV();
+        return;
+
+
     }
     deleteCharacter(character);
     character.x = newX;
     character.y = newY;
     updateFOV();
 }
-
 
 function deleteCharacter(character) {
     display.draw(character.x, character.y, "");
@@ -434,7 +455,7 @@ function handleInput(key) {
 
             break;
         case 'enter':
-            if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {}
+            if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) { }
             playerCharacter.updateStats();
     }
     playerCharacter.updateStats();
@@ -493,7 +514,7 @@ function generateNewLevel() {
 
     mapMatrix = [];
 
-    map.create(function(x, y, value) {
+    map.create(function (x, y, value) {
         if (!mapMatrix[x]) {
             mapMatrix[x] = [];
         }
@@ -521,13 +542,13 @@ function regenerateEntities() {
 }
 
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
-let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 10, 0);
+let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 100, 0);
 
 let goldCoordinates = getRandomWalkableCoordinate();
 let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
 
-let enemies = generateEnemies(1);
-let weapons = generateWeapon(level);
+let enemies = generateEnemies(4);
+let weapons = generateWeapon(4);
 
 for (let rat of enemies) {
     drawCharacter(rat);
@@ -543,7 +564,7 @@ for (let weapon of weapons) {
 
 }
 console.log(playerCharacter.gold);
-window.addEventListener('keydown', function(event) {
+window.addEventListener('keydown', function (event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
         handleInput('z');
@@ -560,7 +581,7 @@ window.addEventListener('keydown', function(event) {
 
 // updateFOV();
 
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
     if (!playerCharacter.weapon) {
         console.log('no weapon');
         return
@@ -569,6 +590,7 @@ window.addEventListener('click', function(event) {
     const bounds = event.target.getBoundingClientRect();
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
+    // playerCharacter.updateStats();
     for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
             rat.takeDamage(damage);
@@ -580,7 +602,7 @@ window.addEventListener('click', function(event) {
                     playerCharacter.gold++;
                     playerCharacter.updateStats();
                     updateFOV();
-                    console.log("you found gold on the ragodin")
+                    console.log("you found gold on the ragondin")
                 } else {
                     console.log("unlucky, you didn't find gold on this racoon")
                 }
@@ -591,7 +613,6 @@ window.addEventListener('click', function(event) {
             console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage');
             console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left');
             console.log('rat has ' + rat.currentHP + ' hp left');
-
             return;
         }
     }
