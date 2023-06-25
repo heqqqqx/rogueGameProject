@@ -19,7 +19,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function (x, y, value) {
+map.create(function(x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -276,7 +276,7 @@ function drawStairs(stairs) {
     display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -289,7 +289,7 @@ function updateFOV() {
     display.clear();
     visibleCells.clear(); // Clear the set before recomputing
     try {
-        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
+        fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
             visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -428,15 +428,15 @@ function handleInput(key) {
 
             break;
         case 'enter':
-            if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) { }
+            if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {}
             playerCharacter.updateStats();
+    }
 
-
-            for (let rat of enemies) {
-                rat.takeTurn();
-            }
+    for (let rat of enemies) {
+        rat.takeTurn();
     }
 }
+
 
 function pickUpWeapon(character) {
     for (let i = 0; i < weapons.length; i++) {
@@ -487,7 +487,7 @@ function generateNewLevel() {
 
     mapMatrix = [];
 
-    map.create(function (x, y, value) {
+    map.create(function(x, y, value) {
         if (!mapMatrix[x]) {
             mapMatrix[x] = [];
         }
@@ -537,7 +537,7 @@ for (let weapon of weapons) {
 
 }
 console.log(playerCharacter.gold);
-window.addEventListener('keydown', function (event) {
+window.addEventListener('keydown', function(event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
         handleInput('z');
@@ -554,7 +554,7 @@ window.addEventListener('keydown', function (event) {
 
 // updateFOV();
 
-window.addEventListener('click', function (event) {
+window.addEventListener('click', function(event) {
     if (!playerCharacter.weapon) {
         console.log('no weapon');
         return
