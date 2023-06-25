@@ -16,14 +16,15 @@ function loadGame() {
         console.log(saveData.mapMatrix)
         console.log(saveData.weapons)
         console.log(saveData.stairs)
-        console.log(saveData.gold)
+        console.log("golds : " + saveData.golds)
         console.log(saveData.level)
         mapMatrix = saveData.mapMatrix;
         playerCharacter = Object.assign(new Character(), saveData.playerCharacter);
         enemies = saveData.enemies.map(enemyData => Object.assign(new Enemy(), enemyData));
         weapons = saveData.weapons.map(weaponData => Object.assign(new Weapon(), weaponData));
         stairs = Object.assign(new Stairs(), saveData.stairs);
-        gold = Object.assign(new Gold(), saveData.gold);
+
+        golds = saveData.weapons.map(goldData => Object.assign(new Gold(), goldData));
 
         console.log('Game loaded successfully.');
 
@@ -228,15 +229,7 @@ class Stairs {
         this.color = color;
     }
 }
-class Potion {
-    constructor(x, y, symbol, color, healAmount) {
-        this.x = x;
-        this.y = y;
-        this.symbol = symbol;
-        this.color = color;
-        this.healAmount = healAmount;
-    }
-}
+
 
 function generateEnemies(level) {
     const enemies = [];
@@ -281,6 +274,21 @@ function generateWeapon(level) {
     return weapons;
 }
 
+function generateGold(level) {
+    let golds = [];
+    for (let i = 0; i < level * 2; i++) {
+        let goldCoordinates = getRandomWalkableCoordinate();
+        let gold = new Gold(
+            goldCoordinates.x,
+            goldCoordinates.y,
+            '$',
+            'yellow'
+        );
+        golds.push(gold);
+    }
+    return golds;
+}
+
 function generateStairs() {
     let stairsCoordinates = getRandomWalkableCoordinate();
     let stairs = new Stairs(stairsCoordinates.x,
@@ -300,9 +308,7 @@ function drawGold(gold) {
     display.draw(gold.x, gold.y, gold.symbol, gold.color);
 }
 
-function drawPotion(potion) {
-    display.draw(potion.x, potion.y, potion.symbol, potion.color);
-}
+
 
 function drawStairs(stairs) {
     display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
@@ -352,11 +358,11 @@ function updateFOV() {
             drawCharacter(rat);
         }
     }
-    if (gold && visibleCells.has(gold.x + ',' + gold.y)) {
-        drawGold(gold);
+    for (let g of golds) {
+        if (visibleCells.has(g.x + ',' + g.y)) {
+            drawGold(g);
+        }
     }
-
-
 }
 
 function getEnemy(x, y) {
@@ -368,39 +374,6 @@ function getEnemy(x, y) {
     return null;
 }
 
-// function moveCharacter(character, dx, dy) {
-//     const newX = character.x + dx;
-//     const newY = character.y + dy;
-//     const damage = character.power;
-//     if (isCollision(newX, newY)) {
-//         return; // Collision with map boundaries or walls, cannot move
-//     }
-
-//     if (isCollisionWithEnemy(newX, newY)) {
-//         for (let rat of enemies) {
-//             if (rat.x === newX && rat.y === newY) {
-//                 rat.takeDamage(damage);
-//                 if (!rat.isAlive()) {
-//                     enemies.splice(rat, 1);
-//                     console.log(enemies)
-//                     console.log("rat mort cac");
-//                     if (Math.random() < 0.75) {
-//                         playerCharacter.gold++;
-//                         console.log("you found gold on the ragodin")
-//                     } else {
-//                         console.log("unlucky, you didn't find gold on this racoon")
-//                     }
-//                 }
-//                 console.log("hp du rat :" + rat.currentHP);
-//                 return;
-//             }
-//         }
-//     }
-//     deleteCharacter(character);
-//     character.x = newX;
-//     character.y = newY;
-//     updateFOV();
-// }
 
 function moveCharacter(character, dx, dy) {
     const newX = character.x + dx;
@@ -483,7 +456,7 @@ function handleInput(key) {
             pickUpGold(playerCharacter);
 
             break;
-        case 'enter':
+        case 'e':
             if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {
                 generateNewLevel();
             }
@@ -522,12 +495,17 @@ function deleteWeapon(character) {
     drawCharacter(character)
 }
 
+
 function pickUpGold(character) {
-    if (gold && character.x === gold.x && character.y === gold.y) {
-        console.log(character.gold)
-        character.gold += 1;
-        deleteGold(character); // Supprime l'or de la carte
-        gold = null;
+    for (let i = 0; i < golds.length; i++) {
+        const gold = golds[i];
+        if (character.x === gold.x && character.y === gold.y) {
+            character.gold += 1;
+            console.log(character);
+            deleteWeapon(character);
+            golds.splice(i, 1);
+            break;
+        }
     }
 }
 
@@ -547,7 +525,7 @@ function saveGame() {
         enemies: enemies,
         weapons: weapons,
         stairs: stairs,
-        gold: gold,
+        golds: golds,
         level: level,
     };
 
@@ -598,12 +576,16 @@ function generateNewLevel() {
     display.setOptions(displayOptions);
 
     for (let rat of enemies) {
-        console.log(rat);
+        // console.log(rat);
         drawCharacter(rat);
     }
     for (let weapon of weapons) {
-        console.log(weapon);
+        // console.log(weapon);
         drawWeapon(weapon);
+    }
+    for (let gold of golds) {
+        // console.log(gold);
+        drawGold(gold);
     }
 
     playerCharacterCoordinates = getRandomWalkableCoordinate();
@@ -611,18 +593,14 @@ function generateNewLevel() {
     playerCharacter.y = playerCharacterCoordinates.y;
     console.log(playerCharacter);
 
-    goldCoordinates = getRandomWalkableCoordinate();
-    gold.x = goldCoordinates.x;
-    gold.y = goldCoordinates.y;
-
     stairs = generateStairs();
     drawStairs(stairs);
 
     drawCharacter(playerCharacter);
-    drawGold(gold);
-    for (let weapon of weapons) {
-        drawWeapon(weapon);
-    }
+
+    // for (let weapon of weapons) {
+    //     drawWeapon(weapon);
+    // }
     console.log(playerCharacter.gold);
 }
 
@@ -630,30 +608,33 @@ function generateNewLevel() {
 function regenerateEntities() {
     enemies = generateEnemies(level);
     weapons = generateWeapon(level);
+    golds = generateGold(level);
 }
 
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
 let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 100, 0);
 
-let goldCoordinates = getRandomWalkableCoordinate();
-let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
 
 let enemies = generateEnemies(level);
 let weapons = generateWeapon(level);
+let golds = generateGold(level);
 
 for (let rat of enemies) {
     drawCharacter(rat);
 }
-
-let stairs = generateStairs();
-drawStairs(stairs);
-
-drawCharacter(playerCharacter);
-drawGold(gold);
 for (let weapon of weapons) {
     drawWeapon(weapon);
 
 }
+for (let gold of golds) {
+    drawGold(gold);
+}
+
+let stairs = generateStairs();
+drawStairs(stairs);
+drawCharacter(playerCharacter);
+
+
 console.log(playerCharacter.gold);
 window.addEventListener('keydown', function(event) {
     let key = event.key.toLowerCase();
@@ -665,8 +646,8 @@ window.addEventListener('keydown', function(event) {
         handleInput('q');
     } else if (key === 'arrowright' || key === 'd') {
         handleInput('d');
-    } else if (key === 'enter') {
-        handleInput('enter');
+    } else if (key === 'e') {
+        handleInput('e');
     } else if (key == "h") {
         handleInput('h');
     }
