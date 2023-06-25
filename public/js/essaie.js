@@ -23,9 +23,7 @@ function loadGame() {
         enemies = saveData.enemies.map(enemyData => Object.assign(new Enemy(), enemyData));
         weapons = saveData.weapons.map(weaponData => Object.assign(new Weapon(), weaponData));
         stairs = Object.assign(new Stairs(), saveData.stairs);
-
-        golds = saveData.weapons.map(goldData => Object.assign(new Gold(), goldData));
-
+        golds = saveData.golds.map(goldData => Object.assign(new Gold(), goldData));
         console.log('Game loaded successfully.');
 
     };
