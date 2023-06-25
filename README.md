@@ -6,8 +6,8 @@
 
 #### npm i path
 #### npm i node
-
+#### npm i express
 #### node app.js
 
 
-The website will then be available locally on (this page)[http://localhost:3010/]
+The website will then be available locally on [this page](http://localhost:3010/)
