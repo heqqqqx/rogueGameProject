@@ -1,3 +1,37 @@
+document.getElementById('file-input').addEventListener('change', loadGame);
+
+function loadGame() {
+    console.log('Loading game...');
+    const fileInput = document.getElementById('file-input');
+    console.log('Waiting for file selection...')
+
+    console.log('File selected.');
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const saveDataJson = event.target.result;
+        const saveData = JSON.parse(saveDataJson);
+        console.log(saveData.enemies)
+        console.log(saveData.playerCharacter)
+        console.log(saveData.mapMatrix)
+        console.log(saveData.weapons)
+        console.log(saveData.stairs)
+        console.log(saveData.gold)
+        console.log(saveData.level)
+        mapMatrix = saveData.mapMatrix;
+        playerCharacter = Object.assign(new Character(), saveData.playerCharacter);
+        enemies = saveData.enemies.map(enemyData => Object.assign(new Enemy(), enemyData));
+        weapons = saveData.weapons.map(weaponData => Object.assign(new Weapon(), weaponData));
+        stairs = Object.assign(new Stairs(), saveData.stairs);
+        gold = Object.assign(new Gold(), saveData.gold);
+
+        console.log('Game loaded successfully.');
+
+    };
+    reader.readAsText(file);
+}
+
+
 var mapWidth = 120;
 var mapHeight = 60;
 var maxRooms = 4;
@@ -434,6 +468,9 @@ function handleInput(key) {
             if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {
                 generateNewLevel();
             }
+            break;
+        case 'h':
+            saveGame();
 
     }
     playerCharacter.updateStats();
@@ -487,6 +524,32 @@ function deleteGold(character) {
 function deleteRat(character) {
     drawCharacter(character);
 }
+
+function saveGame() {
+    console.log('Saving game...');
+    const saveData = {
+        mapMatrix: mapMatrix,
+        playerCharacter: playerCharacter,
+        enemies: enemies,
+        weapons: weapons,
+        stairs: stairs,
+        gold: gold,
+        level: level,
+    };
+
+    const saveDataJson = JSON.stringify(saveData);
+    const blob = new Blob([saveDataJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'game_progression.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    console.log('Game saved successfully.');
+}
+
 
 function generateNewLevel() {
     console.log("generating new level");
@@ -593,6 +656,8 @@ window.addEventListener('keydown', function (event) {
         handleInput('d');
     } else if (key === 'enter') {
         handleInput('enter');
+    } else if (key == "h") {
+        handleInput('h');
     }
 });
 
