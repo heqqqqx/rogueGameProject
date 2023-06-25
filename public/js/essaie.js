@@ -1,3 +1,5 @@
+
+
 var mapWidth = 120;
 var mapHeight = 60;
 var maxRooms = 4;
@@ -348,106 +350,114 @@ function handleInput(key) {
 function pickUpWeapon(character) {
     if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
         character.weapon = weapon1;
-        character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
-        console.log(character);
-        deleteWeapon(character);
-        weapon1 = null;
+        if (!character.weapon) {
+            character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
+        } else {
+            character.weapon.ammo = 4;
+            console.log(character);
+            deleteWeapon(character);
+            weapon1 = null;
+        }
     } else if (weapon2 && character.x === weapon2.x && character.y === weapon2.y) {
         character.weapon = weapon2;
-        character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
-        console.log(character);
-        deleteWeapon(character);
-        weapon2 = null;
+        if (!character.weapon) {
+            character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
+        } else {
+            character.weapon.ammo = 4;
+        }
+            console.log(character);
+            deleteWeapon(character);
+            weapon2 = null;
+        }
     }
-}
 
-// function pickUpWeapon(character) {
-//     for (let i = 0; i < weapons.length; i++) {
-//         const weapon = weapons[i];
-//         if (weapon instanceof Weapon && character.x === weapon.x && character.y === weapon.y) {
-//             character.weapon = weapon;
-//             console.log(character);
-//             deleteWeapon(character);
-//             weapons.splice(i, 1); // Supprime l'objet Weapon du tableau
-//             break; // Sort de la boucle une fois que l'arme a été ramassée
-//         }
-//     }
-// }
+    // function pickUpWeapon(character) {
+    //     for (let i = 0; i < weapons.length; i++) {
+    //         const weapon = weapons[i];
+    //         if (weapon instanceof Weapon && character.x === weapon.x && character.y === weapon.y) {
+    //             character.weapon = weapon;
+    //             console.log(character);
+    //             deleteWeapon(character);
+    //             weapons.splice(i, 1); // Supprime l'objet Weapon du tableau
+    //             break; // Sort de la boucle une fois que l'arme a été ramassée
+    //         }
+    //     }
+    // }
 
-function deleteWeapon(character) {
-    drawCharacter(character)
-}
-
-function pickUpGold(character) {
-    if (gold && character.x === gold.x && character.y === gold.y) {
-        console.log(character.gold)
-        character.gold += 1;
-        deleteGold(character); // Supprime l'or de la carte
-        gold = null;
+    function deleteWeapon(character) {
+        drawCharacter(character)
     }
-}
 
-
-function deleteGold(character) {
-    drawCharacter(character);
-}
-
-
-
-let playerCharacterCoordinates = getRandomWalkableCoordinate();
-let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 10, 10, 10, 0, 0);
-
-let goldCoordinates = getRandomWalkableCoordinate();
-let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
-
-var ratCoordinates = getRandomWalkableCoordinate();
-var rat = new Enemy(ratCoordinates.x, ratCoordinates.y, 'R', 'red', 5, 5, 10, 10);
-
-let weapons = [];
-let weapon1Coordinates = getRandomWalkableCoordinate();
-let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
-weapons.push(weapon1);
-let weapon2Coordinates = getRandomWalkableCoordinate();
-let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
-weapons.push(weapon2);
-
-
-drawCharacter(rat);
-drawCharacter(playerCharacter);
-drawGold(gold);
-drawWeapon(weapon1);
-drawWeapon(weapon2);
-console.log(playerCharacter.gold);
-window.addEventListener('keydown', function (event) {
-    let key = event.key.toLowerCase();
-    if (key === 'arrowup' || key === 'z') {
-        handleInput('z');
-    } else if (key === 'arrowdown' || key === 's') {
-        handleInput('s');
-    } else if (key === 'arrowleft' || key === 'q') {
-        handleInput('q');
-    } else if (key === 'arrowright' || key === 'd') {
-        handleInput('d');
+    function pickUpGold(character) {
+        if (gold && character.x === gold.x && character.y === gold.y) {
+            console.log(character.gold)
+            character.gold += 1;
+            deleteGold(character); // Supprime l'or de la carte
+            gold = null;
+        }
     }
-});
 
-// updateFOV();
 
-window.addEventListener('click', function (event) {
-    if (!playerCharacter.weapon) {
-        console.log('no weapon');
-        return
-    };
-    const damage = playerCharacter.weapon.attack();
-    const bounds = event.target.getBoundingClientRect();
-    const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
-    const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
-
-    if (x === rat.x && y === rat.y) {
-        rat.takeDamage(damage);
-        console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
-        console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
-        console.log('rat has ' + rat.currentHP + ' hp left')
-        return;
+    function deleteGold(character) {
+        drawCharacter(character);
     }
-});
+
+
+
+    let playerCharacterCoordinates = getRandomWalkableCoordinate();
+    let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 10, 10, 10, 0, 0);
+
+    let goldCoordinates = getRandomWalkableCoordinate();
+    let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
+
+    var ratCoordinates = getRandomWalkableCoordinate();
+    var rat = new Enemy(ratCoordinates.x, ratCoordinates.y, 'R', 'red', 5, 5, 10, 10);
+
+    let weapons = [];
+    let weapon1Coordinates = getRandomWalkableCoordinate();
+    let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
+    weapons.push(weapon1);
+    let weapon2Coordinates = getRandomWalkableCoordinate();
+    let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
+    weapons.push(weapon2);
+
+
+    drawCharacter(rat);
+    drawCharacter(playerCharacter);
+    drawGold(gold);
+    drawWeapon(weapon1);
+    drawWeapon(weapon2);
+    console.log(playerCharacter.gold);
+    window.addEventListener('keydown', function (event) {
+        let key = event.key.toLowerCase();
+        if (key === 'arrowup' || key === 'z') {
+            handleInput('z');
+        } else if (key === 'arrowdown' || key === 's') {
+            handleInput('s');
+        } else if (key === 'arrowleft' || key === 'q') {
+            handleInput('q');
+        } else if (key === 'arrowright' || key === 'd') {
+            handleInput('d');
+        }
+    });
+
+    // updateFOV();
+
+    window.addEventListener('click', function (event) {
+        if (!playerCharacter.weapon) {
+            console.log('no weapon');
+            return
+        };
+        const damage = playerCharacter.weapon.attack();
+        const bounds = event.target.getBoundingClientRect();
+        const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
+        const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
+
+        if (x === rat.x && y === rat.y) {
+            rat.takeDamage(damage);
+            console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
+            console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
+            console.log('rat has ' + rat.currentHP + ' hp left')
+            return;
+        }
+    });
