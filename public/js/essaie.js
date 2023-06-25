@@ -71,17 +71,6 @@ function getRandomWalkableCoordinate() {
     return null; // Retourne null s'il n'y a pas de coordonnées où marcher
 }
 
-// Trouver et afficher les centres de toutes les pièces
-// var rooms = [];
-// for (var x = 0; x < mapWidth; x++) {
-//     for (var y = 0; y < mapHeight; y++) {
-//         if (mapMatrix[x][y] === 0) {
-//             var roomCenter = { x: x + Math.floor(mapWidth / 2), y: y + Math.floor(mapHeight / 2) };
-//             rooms.push(roomCenter);
-//             console.log("Center of room: (" + roomCenter.x + ", " + roomCenter.y + ")");
-//         }
-//     }
-// }
 console.log(findRandomRoomCenter());
 console.log(getRandomWalkableCoordinate());
 
@@ -238,7 +227,6 @@ function drawCharacter(character) {
 }
 
 function drawWeapon(weapon) {
-    console.log("AFFFFIIIIIIIICHERRRRRRRRRRRRRRRRRRRRRRRRRRR");
     display.draw(weapon.x, weapon.y, weapon.symbol, weapon.color);
 }
 function drawGold(gold) {
@@ -260,19 +248,23 @@ function updateFOV() {
     var y = playerCharacter.y;
     var visibilityRadius = 10;
     display.clear();
-
+    console.log("co de x et y : " + x, y);
     visibleCells.clear(); // Clear the set before recomputing
+    try {
+        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
+            let cellKey = startX + ',' + startY;
+            console.log("co de xStart et y : " + startX, startY);
+            visibleCells.add(cellKey); // Add the cell to the visible set
 
-    fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
-        let cellKey = startX + ',' + startY;
-        visibleCells.add(cellKey); // Add the cell to the visible set
-
-        if (mapMatrix[startX][startY] === 1) {
-            display.draw(startX, startY, "#", "#653", "#320");
-        } else {
-            display.draw(startX, startY, ".");
-        }
-    });
+            if (mapMatrix[startX][startY] === 1) {
+                display.draw(startX, startY, "#", "#653", "#320");
+            } else {
+                display.draw(startX, startY, ".");
+            }
+        });
+    } catch (e) {
+        console.log(e);
+    }
 
     // Only draw the character if they're visible
     if (visibleCells.has(playerCharacter.x + ',' + playerCharacter.y)) {
@@ -384,50 +376,30 @@ function pickUpGold(character) {
 function deleteGold(character) {
     drawCharacter(character);
 }
-// draw the character at a random position
-// let randomRooms = rooms[Math.floor(Math.random() * rooms.length)];
-// let randomCenter = findRandomRoomCenter();
-
-// const playerCharacter = new Character(randomCenter[0], randomCenter[1], '@', 'red', 100, 100, 9, 5, 0);
-// drawCharacter(playerCharacter);
-
-// // draw the rats at a random position
-// // Génération aléatoire des coordonnées pour l'ennemi
-// let randomEnemyRoom = rooms[Math.floor(Math.random() * rooms.length)];
-// let enemyX = randomEnemyRoom.getLeft() + Math.floor(Math.random() * (randomEnemyRoom.getRight() - randomEnemyRoom.getLeft() - 1));
-// let enemyY = randomEnemyRoom.getTop() + Math.floor(Math.random() * (randomEnemyRoom.getBottom() - randomEnemyRoom.getTop() - 1));
-// let rat = new Enemy(enemyX, enemyY, 'R', 'green', 5, 10, 30, 30);
-// let enemies = [];
-// enemies.push(rat);
-
-// // Génération aléatoire des coordonnées pour les armes
-// let randomRoomsForWeapons = [rooms[Math.floor(Math.random() * rooms.length)], rooms[Math.floor(Math.random() * rooms.length)]];
-
-// let weapon1Room = randomRoomsForWeapons[0];
-// let weapon1X = weapon1Room.getLeft() + Math.floor(Math.random() * (weapon1Room.getRight() - weapon1Room.getLeft() - 1));
-// let weapon1Y = weapon1Room.getTop() + Math.floor(Math.random() * (weapon1Room.getBottom() - weapon1Room.getTop() - 1));
-// let weapon1 = new Weapon(weapon1X, weapon1Y, 'G', 'blue', 30, 4, 4, "Gun");
-
-// let weapon2Room = randomRoomsForWeapons[1];
-// let weapon2X = weapon2Room.getLeft() + Math.floor(Math.random() * (weapon2Room.getRight() - weapon2Room.getLeft() - 1));
-// let weapon2Y = weapon2Room.getTop() + Math.floor(Math.random() * (weapon2Room.getBottom() - weapon2Room.getTop() - 1));
-// let weapon2 = new Weapon(weapon2X, weapon2Y, 'G', 'blue', 30, 4, 4, "Gun");
-
-// // Génération aléatoire des coordonnées pour l'or
-// let randomGoldRoom = rooms[Math.floor(Math.random() * rooms.length)];
-// let goldX = randomGoldRoom.getLeft() + Math.floor(Math.random() * (randomGoldRoom.getRight() - randomGoldRoom.getLeft() - 1));
-// let goldY = randomGoldRoom.getTop() + Math.floor(Math.random() * (randomGoldRoom.getBottom() - randomGoldRoom.getTop() - 1));
-// // let gold = new Gold(goldX, goldY, 'G', 'yellow');
-
-let randonCoordinatesGold = getRandomWalkableCoordinate();
-let gold = new Gold(randonCoordinatesGold[0], randonCoordinatesGold[1], 'G', 'yellow');
 
 
 
-// drawWeapon(weapon1);
-// drawWeapon(weapon2);
-// drawCharacter(rat);
+let playerCharacterCoordinates = getRandomWalkableCoordinate();
+let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 10, 10, 10);
+
+let goldCoordinates = getRandomWalkableCoordinate();
+let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
+
+var ratCoordinates = getRandomWalkableCoordinate();
+var rat = new Enemy(ratCoordinates.x, ratCoordinates.y, 'R', 'red', 5, 5, 10, 10);
+
+
+let weapon1Coordinates = getRandomWalkableCoordinate();
+let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5);
+let weapon2Coordinates = getRandomWalkableCoordinate();
+let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5);
+
+
+drawCharacter(rat);
+drawCharacter(playerCharacter);
 drawGold(gold);
+drawWeapon(weapon1);
+drawWeapon(weapon2);
 
 window.addEventListener('keydown', function (event) {
     let key = event.key.toLowerCase();
