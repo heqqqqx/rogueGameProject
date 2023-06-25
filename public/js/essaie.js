@@ -1,12 +1,10 @@
-
-
 var mapWidth = 120;
 var mapHeight = 60;
 var maxRooms = 4;
 var corridorLength = [2, 4];
 
 var map = new ROT.Map.Rogue(mapWidth, mapHeight);
-
+var level = 1
 var displayOptions = {
     width: mapWidth,
     height: mapHeight,
@@ -21,7 +19,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function (x, y, value) {
+map.create(function(x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -33,27 +31,7 @@ map.create(function (x, y, value) {
     }
 });
 
-function findRandomRoomCenter() {
-    var rooms = [];
-    for (var x = 0; x < mapWidth; x++) {
-        for (var y = 0; y < mapHeight; y++) {
-            if (mapMatrix[x][y] === 0) {
-                rooms.push({ x: x, y: y });
-            }
-        }
-    }
 
-    if (rooms.length > 0) {
-        var randomRoomIndex = Math.floor(Math.random() * rooms.length);
-        var roomX = rooms[randomRoomIndex].x;
-        var roomY = rooms[randomRoomIndex].y;
-        var roomCenterX = roomX + Math.floor(mapWidth / 2);
-        var roomCenterY = roomY + Math.floor(mapHeight / 2);
-        return { x: roomCenterX, y: roomCenterY };
-    }
-
-    return null; // Retourne null s'il n'y a aucune pièce dans la carte
-}
 function getRandomWalkableCoordinate() {
     var walkableCoordinates = [];
 
@@ -103,7 +81,6 @@ class Enemy {
                 playerCharacter.currentHP -= this.damage * (1 - playerCharacter.defense / 10);
                 if (playerCharacter.currentHP < 0) playerCharacter.currentHP = 0;
                 console.log(`Player HP: ${playerCharacter.currentHP}`);
-                console.log(rat.x, rat.y, playerCharacter.x, playerCharacter.y)
             } else {
                 let dx = Math.sign(playerCharacter.x - this.x);
                 let dy = Math.sign(playerCharacter.y - this.y);
@@ -114,7 +91,12 @@ class Enemy {
 
     takeDamage(damage) {
         this.currentHP -= damage;
-        if (this.currentHP < 0) this.currentHP = 0;
+
+        if (this.currentHP < 0) {
+            this.currentHP = 0;
+        }
+
+
     }
 
     isAlive() {
@@ -135,12 +117,12 @@ class Character {
     }
     pickupDefense(defense) {
         this.defense += defense;
-        if (this.defense > 10) this.defense = 10;
+        if (this.defense > 10) this.defense = 11;
     }
 
     takeDamage(damage) {
         //
-        this.currentHP -= damage * (1 - this.defense / 10);
+        this.currentHP -= damage * (1 - this.defense / 11);
         if (this.currentHP < 0) this.currentHP = 0;
     }
 
@@ -222,6 +204,51 @@ class Potion {
     }
 }
 
+function generateEnemies(level) {
+    const enemies = [];
+
+    for (let i = 0; i < level * 2; i++) {
+        let ratCoordinates = getRandomWalkableCoordinate();
+        let rat = new Enemy(
+            ratCoordinates.x,
+            ratCoordinates.y,
+            'R',
+            'green',
+            5 + level,
+            10 + level * 3,
+            30 + level * 10,
+            30 + level * 10
+        );
+        console.log(rat);
+        enemies.push(rat);
+    }
+
+    return enemies;
+}
+
+function generateWeapon(level) {
+    let weapons = [];
+
+    for (let i = 0; i < level * 2; i++) {
+        let weaponCoordinates = getRandomWalkableCoordinate();
+        let weapon = new Weapon(
+            weaponCoordinates.x,
+            weaponCoordinates.y,
+            'W',
+            'blue',
+            20,
+            10,
+            0,
+            "Gun"
+        );
+        // console.log(weapon);
+        weapons.push(weapon);
+    }
+
+    return weapons;
+}
+
+
 function drawCharacter(character) {
     display.draw(character.x, character.y, character.symbol, character.color);
 }
@@ -229,6 +256,7 @@ function drawCharacter(character) {
 function drawWeapon(weapon) {
     display.draw(weapon.x, weapon.y, weapon.symbol, weapon.color);
 }
+
 function drawGold(gold) {
     display.draw(gold.x, gold.y, gold.symbol, gold.color);
 }
@@ -237,7 +265,7 @@ function drawPotion(potion) {
     display.draw(potion.x, potion.y, potion.symbol, potion.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -248,12 +276,10 @@ function updateFOV() {
     var y = playerCharacter.y;
     var visibilityRadius = 10;
     display.clear();
-    // console.log("co de x et y : " + x, y);
     visibleCells.clear(); // Clear the set before recomputing
     try {
-        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
+        fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
-            // console.log("co de xStart et y : " + startX, startY);
             visibleCells.add(cellKey); // Add the cell to the visible set
 
             if (mapMatrix[startX][startY] === 1) {
@@ -263,7 +289,7 @@ function updateFOV() {
             }
         });
     } catch (e) {
-        console.log(e);
+        // console.log(e);
     }
 
     // Only draw the character if they're visible
@@ -271,27 +297,37 @@ function updateFOV() {
         drawCharacter(playerCharacter);
     }
 
-    if (weapon1 && visibleCells.has(weapon1.x + ',' + weapon1.y)) {
-        drawWeapon(weapon1);
-    }
 
-    if (weapon2 && visibleCells.has(weapon2.x + ',' + weapon2.y)) {
-        drawWeapon(weapon2);
+    // if (weapon2 && visibleCells.has(weapon2.x + ',' + weapon2.y)) {
+    //     drawWeapon(weapon2);
+    // }
+    for (let w of weapons) {
+        if (visibleCells.has(w.x + ',' + w.y)) {
+            drawCharacter(w);
+        }
     }
-
-    if (rat && visibleCells.has(rat.x + ',' + rat.y) && rat.isAlive()) {
-        drawCharacter(rat);
+    for (let rat of enemies) {
+        if (visibleCells.has(rat.x + ',' + rat.y) && rat.isAlive()) {
+            drawCharacter(rat);
+        }
     }
     if (gold && visibleCells.has(gold.x + ',' + gold.y)) {
         drawGold(gold);
     }
 }
 
+function getEnemy(x, y) {
+    for (let rat of enemies) {
+        if (rat.x === x && rat.y === y) {
+            return rat;
+        }
+    }
+    return null;
+}
 
 function moveCharacter(character, dx, dy) {
     deleteCharacter(character);
     if (isCollision(character.x + dx, character.y + dy)) {
-        console.log("collision");
         drawCharacter(character);
         return;
     } else {
@@ -306,12 +342,21 @@ function deleteCharacter(character) {
 }
 
 function isCollision(x, y) {
-    console.log("x : " + x + " y : " + y);
+    // console.log("x : " + x + " y : " + y);
     if (x < 0 || x >= mapWidth || y < 0 || y >= mapHeight || mapMatrix[x][y] == 1) {
-        console.log("collision");
+        // console.log("collision");
         return true;
     }
-    console.log("pas de collision");
+    // console.log("pas de collision");
+    return false;
+}
+
+function isCollisionWithEnemy(x, y) {
+    for (let rat of enemies) {
+        if (rat.x == x && rat.y == y) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -321,6 +366,7 @@ function handleInput(key) {
             moveCharacter(playerCharacter, 0, -1);
             pickUpWeapon(playerCharacter);
             pickUpGold(playerCharacter);
+
             break;
         case 's':
             moveCharacter(playerCharacter, 0, 1);
@@ -343,121 +389,159 @@ function handleInput(key) {
     }
     playerCharacter.updateStats();
 
-    rat.takeTurn();
-
+    for (let rat of enemies) {
+        rat.takeTurn();
+    }
 }
 
+
+// function pickUpWeapon(character) {
+//     if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
+//         if (!character.weapon) {
+//             character.weapon = weapon1;
+//             character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
+//         } else {
+//             character.weapon.ammo += 4; // Ajoute 4 balles à l'arme existante
+//         }
+
+//         console.log(character);
+//         deleteWeapon(character);
+//         weapon1 = null;
+
+//     }
+//     else if (weapon2 && character.x === weapon2.x && character.y === weapon2.y) {
+//         if (character.weapon) {
+//             console.log("character.weapon : " + character.weapon);
+//             character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
+//         } else {
+//             character.weapon = weapon2;
+//         }
+//         console.log(character);
+//         deleteWeapon(character);
+//         weapon2 = null;
+//     }
+// }
+
 function pickUpWeapon(character) {
-    if (weapon1 && character.x === weapon1.x && character.y === weapon1.y) {
-        character.weapon = weapon1;
-        if (!character.weapon) {
-            character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
-        } else {
-            character.weapon.ammo = 4;
+    for (let i = 0; i < weapons.length; i++) {
+        const weapon = weapons[i];
+        if (character.x === weapon.x && character.y === weapon.y) {
+            if (!character.weapon) {
+                character.weapon = weapon;
+                character.weapon.ammo += 4;
+            } else {
+                character.weapon.ammo += 4;
+            }
+
             console.log(character);
             deleteWeapon(character);
-            weapon1 = null;
-        }
-    } else if (weapon2 && character.x === weapon2.x && character.y === weapon2.y) {
-        character.weapon = weapon2;
-        if (!character.weapon) {
-            character.weapon.ammo += 4; // Ajoute 4 balles à l'arme
-        } else {
-            character.weapon.ammo = 4;
-        }
-            console.log(character);
-            deleteWeapon(character);
-            weapon2 = null;
+            weapons.splice(i, 1);
+            break;
         }
     }
+}
 
-    // function pickUpWeapon(character) {
-    //     for (let i = 0; i < weapons.length; i++) {
-    //         const weapon = weapons[i];
-    //         if (weapon instanceof Weapon && character.x === weapon.x && character.y === weapon.y) {
-    //             character.weapon = weapon;
-    //             console.log(character);
-    //             deleteWeapon(character);
-    //             weapons.splice(i, 1); // Supprime l'objet Weapon du tableau
-    //             break; // Sort de la boucle une fois que l'arme a été ramassée
-    //         }
-    //     }
-    // }
 
-    function deleteWeapon(character) {
-        drawCharacter(character)
+function deleteWeapon(character) {
+    drawCharacter(character)
+}
+
+function pickUpGold(character) {
+    if (gold && character.x === gold.x && character.y === gold.y) {
+        console.log(character.gold)
+        character.gold += 1;
+        deleteGold(character); // Supprime l'or de la carte
+        gold = null;
     }
-
-    function pickUpGold(character) {
-        if (gold && character.x === gold.x && character.y === gold.y) {
-            console.log(character.gold)
-            character.gold += 1;
-            deleteGold(character); // Supprime l'or de la carte
-            gold = null;
-        }
-    }
+}
 
 
-    function deleteGold(character) {
-        drawCharacter(character);
-    }
+function deleteGold(character) {
+    drawCharacter(character);
+}
 
 
 
-    let playerCharacterCoordinates = getRandomWalkableCoordinate();
-    let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 10, 10, 10, 0, 0);
+let playerCharacterCoordinates = getRandomWalkableCoordinate();
+let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 0, 0);
 
-    let goldCoordinates = getRandomWalkableCoordinate();
-    let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
+let goldCoordinates = getRandomWalkableCoordinate();
+let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
 
-    var ratCoordinates = getRandomWalkableCoordinate();
-    var rat = new Enemy(ratCoordinates.x, ratCoordinates.y, 'R', 'red', 5, 5, 10, 10);
-
-    let weapons = [];
-    let weapon1Coordinates = getRandomWalkableCoordinate();
-    let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
-    weapons.push(weapon1);
-    let weapon2Coordinates = getRandomWalkableCoordinate();
-    let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
-    weapons.push(weapon2);
+var ratCoordinates = getRandomWalkableCoordinate();
+var rat = new Enemy(ratCoordinates.x, ratCoordinates.y, 'R', 'red', 5, 5, 10, 10);
 
 
+// let weapon1Coordinates = getRandomWalkableCoordinate();
+// let weapon1 = new Weapon(weapon1Coordinates.x, weapon1Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
+// weapons.push(weapon1);
+// let weapon2Coordinates = getRandomWalkableCoordinate();
+// let weapon2 = new Weapon(weapon2Coordinates.x, weapon2Coordinates.y, 'W', 'blue', 5, 5, 0, "Gun");
+// weapons.push(weapon2);
+
+
+
+let enemies = generateEnemies(level);
+let weapons = generateWeapon(level);
+
+
+
+
+
+for (let rat of enemies) {
     drawCharacter(rat);
-    drawCharacter(playerCharacter);
-    drawGold(gold);
-    drawWeapon(weapon1);
-    drawWeapon(weapon2);
-    console.log(playerCharacter.gold);
-    window.addEventListener('keydown', function (event) {
-        let key = event.key.toLowerCase();
-        if (key === 'arrowup' || key === 'z') {
-            handleInput('z');
-        } else if (key === 'arrowdown' || key === 's') {
-            handleInput('s');
-        } else if (key === 'arrowleft' || key === 'q') {
-            handleInput('q');
-        } else if (key === 'arrowright' || key === 'd') {
-            handleInput('d');
-        }
-    });
+}
+drawCharacter(playerCharacter);
+drawGold(gold);
+for (let weapon of weapons) {
+    drawWeapon(weapon);
 
-    // updateFOV();
+}
+console.log(playerCharacter.gold);
+window.addEventListener('keydown', function(event) {
+    let key = event.key.toLowerCase();
+    if (key === 'arrowup' || key === 'z') {
+        handleInput('z');
+    } else if (key === 'arrowdown' || key === 's') {
+        handleInput('s');
+    } else if (key === 'arrowleft' || key === 'q') {
+        handleInput('q');
+    } else if (key === 'arrowright' || key === 'd') {
+        handleInput('d');
+    }
+});
 
-    window.addEventListener('click', function (event) {
-        if (!playerCharacter.weapon) {
-            console.log('no weapon');
-            return
-        };
-        const damage = playerCharacter.weapon.attack();
-        const bounds = event.target.getBoundingClientRect();
-        const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
-        const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
+// updateFOV();
 
+window.addEventListener('click', function(event) {
+    if (!playerCharacter.weapon) {
+        console.log('no weapon');
+        return
+    };
+    const damage = playerCharacter.weapon.attack();
+    const bounds = event.target.getBoundingClientRect();
+    const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
+    const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
+
+    for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
             rat.takeDamage(damage);
-            console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage')
-            console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left')
-            console.log('rat has ' + rat.currentHP + ' hp left')
+            rat.takeTurn();
+            if (rat.currentHP === 0) {
+                // 75% de chance de drop 1 gold
+                if (Math.random() < 0.75) {
+                    playerCharacter.gold++;
+                    console.log("you found gold on the ragodin")
+                } else {
+                    console.log("unlucky, you didn't find gold on this racoon")
+                }
+            }
+
+
+            console.log('hitted rat for ' + playerCharacter.weapon.damage + ' damage');
+            console.log('used one ammo. ' + playerCharacter.weapon.ammo + ' ammo left');
+            console.log('rat has ' + rat.currentHP + ' hp left');
             return;
         }
-    });
+    }
+});
