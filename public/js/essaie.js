@@ -10,7 +10,7 @@ function loadGame() {
     console.log('File selected.');
     const file = event.target.files[0];
     const reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
         const saveDataJson = event.target.result;
         const saveData = JSON.parse(saveDataJson);
         console.log(saveData.enemies)
@@ -56,7 +56,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function(x, y, value) {
+map.create(function (x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -81,7 +81,7 @@ function getRandomWalkableCoordinate() {
         var randomCoordinateIndex = Math.floor(Math.random() * walkableCoordinates.length);
         return walkableCoordinates[randomCoordinateIndex];
     }
-    return null; // Retourne null s'il n'y a pas de coordonnées où marcher
+    return null;
 }
 
 class Enemy {
@@ -101,7 +101,7 @@ class Enemy {
             return;
         }
 
-        if (Math.random() < 0.3) { // Ajout de l'aléatoire avec une chance de 50% de se déplacer
+        if (Math.random() < 0.3) {
             return;
         }
 
@@ -192,6 +192,24 @@ class Character {
         document.getElementById('gold').textContent = `Gold: ${this.gold}`;
     }
 }
+function CharacterStatus(character) {
+    if (!character.isAlive()) {
+        fetch('/gameover')
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = response.url;
+                } else {
+                    console.log('Une erreur est survenue lors de la récupération de la page gameover.html.');
+                }
+            })
+            .catch(error => {
+                console.log('Une erreur est survenue lors de la requête Fetch :', error);
+            });
+        return false;
+    } else {
+        return true;
+    }
+}
 
 class Weapon {
     constructor(x, y, symbol, color, damage, range, ammo, name) {
@@ -243,37 +261,37 @@ class PNJ {
 
     exchangeGoldForHP(character) {
         const goldForHP = {
-          2: 10,
-          5: 20,
-          10: 40,
-          20: 100
+            2: 10,
+            5: 20,
+            10: 40,
+            20: 100
         };
-           
-        const choice = prompt("Vous pouvez choisir entre ces propositions :\n"+
-        "2 golds pour 10 HP\n"+
-        "5 golds pour 20 HP\n"+
-        "10 golds pour 40 HP\n"+
-        "20 golds pour 100 HP\n"+
-        "Entrer votre choix (2, 5, 10, 20) : ");
+
+        const choice = prompt("Vous pouvez choisir entre ces propositions :\n" +
+            "2 golds pour 10 HP\n" +
+            "5 golds pour 20 HP\n" +
+            "10 golds pour 40 HP\n" +
+            "20 golds pour 100 HP\n" +
+            "Entrer votre choix (2, 5, 10, 20) : ");
         const goldCost = goldForHP[choice];
-        console.log("vous avez choisi "+choice+" golds pour "+goldCost+" HP "+goldForHP[choice]);
-      
+        console.log("vous avez choisi " + choice + " golds pour " + goldCost + " HP " + goldForHP[choice]);
+
         if (choice !== undefined && goldForHP[choice] !== undefined) {
-          if (character.gold >= choice) {
-            const hpGain = goldForHP[choice];
-            character.gold -= choice;
-            character.heal(hpGain);
-      
-            console.log(`Exchanged ${choice} gold for ${hpGain} HP, il vous reste ${character.gold} gold.`);
-            console.log(`Current HP: ${character.currentHP}`);
-          } else {
-            console.log("Not enough gold to perform the exchange.");
-          }
+            if (character.gold >= choice) {
+                const hpGain = goldForHP[choice];
+                character.gold -= choice;
+                character.heal(hpGain);
+
+                console.log(`Exchanged ${choice} gold for ${hpGain} HP, il vous reste ${character.gold} gold.`);
+                console.log(`Current HP: ${character.currentHP}`);
+            } else {
+                console.log("Not enough gold to perform the exchange.");
+            }
         } else {
-          console.log("Invalid choice.");
+            console.log("Invalid choice.");
         }
-      }
-      
+    }
+
 }
 
 
@@ -363,7 +381,7 @@ function drawStairs(stairs) {
     display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -376,7 +394,7 @@ function updateFOV() {
     display.clear();
     visibleCells.clear(); // Clear the set before recomputing
     try {
-        fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
+        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
             visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -431,35 +449,40 @@ function moveCharacter(character, dx, dy) {
     const newX = character.x + dx;
     const newY = character.y + dy;
     const damage = character.power;
+    if (CharacterStatus(character)) {
 
-    if (isCollision(newX, newY)) {
-        return; // Collision with map boundaries or walls, cannot move
-    }
-
-    let rat = getEnemy(newX, newY);
-
-    if (rat && rat.isAlive()) {
-        rat.takeDamage(damage);
-        console.log(enemies.length)
-        if (!rat.isAlive()) {
-            const index = enemies.indexOf(rat);
-            enemies.splice(index, 1);
-            console.log("Rat killed!");
+        if (isCollision(newX, newY)) {
+            return; // Collision with map boundaries or walls, cannot move
         }
 
+        let rat = getEnemy(newX, newY);
+
+        if (rat && rat.isAlive()) {
+            rat.takeDamage(damage);
+            console.log(enemies.length)
+            if (!rat.isAlive()) {
+                const index = enemies.indexOf(rat);
+                enemies.splice(index, 1);
+                console.log("Rat killed!");
+            }
+
+            updateFOV();
+            return;
+        }
+        if (pnj.x == newX && pnj.y == newY) {
+            console.log("hello");
+            pnj.exchangeGoldForHP(character);
+            return;
+        }
+
+        deleteCharacter(character);
+        character.x = newX;
+        character.y = newY;
         updateFOV();
-        return;
-    }
-    if(pnj.x == newX && pnj.y == newY){
-        console.log("hello");
-        pnj.exchangeGoldForHP(character);
+    } else {
         return;
     }
 
-    deleteCharacter(character);
-    character.x = newX;
-    character.y = newY;
-    updateFOV();
 }
 
 
@@ -525,6 +548,7 @@ function handleInput(key) {
     playerCharacter.updateStats();
     for (let rat of enemies) {
         rat.takeTurn();
+        CharacterStatus(playerCharacter);
     }
 }
 
@@ -614,7 +638,7 @@ function generateNewLevel() {
     mapContainer.appendChild(display.getContainer());
     mapMatrix = [];
 
-    map.create(function(x, y, value) {
+    map.create(function (x, y, value) {
         if (!mapMatrix[x]) {
             mapMatrix[x] = [];
         }
@@ -697,7 +721,7 @@ drawPNJ(pnj);
 
 
 console.log(playerCharacter.gold);
-window.addEventListener('keydown', function(event) {
+window.addEventListener('keydown', function (event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
         handleInput('z');
@@ -716,7 +740,7 @@ window.addEventListener('keydown', function(event) {
 
 // updateFOV();
 
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
 
     if (!playerCharacter.weapon) {
         console.log('no weapon');
@@ -758,4 +782,3 @@ window.addEventListener('click', function(event) {
 
 
 });
-export { PNJ };
