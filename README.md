@@ -4,7 +4,7 @@ Our project submission for the small project of mastercamp. Using js and rot.js 
 to run our project : 
 
 
-npm i path \n
-npm i node \n
+## npm i path
+## npm i node
 
 node app.js
