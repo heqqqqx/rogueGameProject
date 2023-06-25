@@ -18,7 +18,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function(x, y, value) {
+map.create(function (x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -246,6 +246,20 @@ function generateWeapon(level) {
 
     return weapons;
 }
+function generateGold(level) {
+    let golds = [];
+    for (let i = 0; i < level * 2; i++) {
+        let goldCoordinates = getRandomWalkableCoordinate();
+        let gold = new Gold(
+            goldCoordinates.x,
+            goldCoordinates.y,
+            '$',
+            'yellow'
+        );
+        golds.push(gold);
+    }
+    return golds;
+}
 
 function generateStairs() {
     let stairsCoordinates = getRandomWalkableCoordinate();
@@ -274,7 +288,7 @@ function drawStairs(stairs) {
     display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -287,7 +301,7 @@ function updateFOV() {
     display.clear();
     visibleCells.clear(); // Clear the set before recomputing
     try {
-        fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
+        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
             visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -318,11 +332,11 @@ function updateFOV() {
             drawCharacter(rat);
         }
     }
-    if (gold && visibleCells.has(gold.x + ',' + gold.y)) {
-        drawGold(gold);
+    for (let g of golds) {
+        if (visibleCells.has(g.x + ',' + g.y)) {
+            drawGold(g);
+        }
     }
-
-
 }
 
 function getEnemy(x, y) {
@@ -334,39 +348,6 @@ function getEnemy(x, y) {
     return null;
 }
 
-// function moveCharacter(character, dx, dy) {
-//     const newX = character.x + dx;
-//     const newY = character.y + dy;
-//     const damage = character.power;
-//     if (isCollision(newX, newY)) {
-//         return; // Collision with map boundaries or walls, cannot move
-//     }
-
-//     if (isCollisionWithEnemy(newX, newY)) {
-//         for (let rat of enemies) {
-//             if (rat.x === newX && rat.y === newY) {
-//                 rat.takeDamage(damage);
-//                 if (!rat.isAlive()) {
-//                     enemies.splice(rat, 1);
-//                     console.log(enemies)
-//                     console.log("rat mort cac");
-//                     if (Math.random() < 0.75) {
-//                         playerCharacter.gold++;
-//                         console.log("you found gold on the ragodin")
-//                     } else {
-//                         console.log("unlucky, you didn't find gold on this racoon")
-//                     }
-//                 }
-//                 console.log("hp du rat :" + rat.currentHP);
-//                 return;
-//             }
-//         }
-//     }
-//     deleteCharacter(character);
-//     character.x = newX;
-//     character.y = newY;
-//     updateFOV();
-// }
 
 function moveCharacter(character, dx, dy) {
     const newX = character.x + dx;
@@ -485,12 +466,17 @@ function deleteWeapon(character) {
     drawCharacter(character)
 }
 
+
 function pickUpGold(character) {
-    if (gold && character.x === gold.x && character.y === gold.y) {
-        console.log(character.gold)
-        character.gold += 1;
-        deleteGold(character); // Supprime l'or de la carte
-        gold = null;
+    for (let i = 0; i < golds.length; i++) {
+        const gold = golds[i];
+        if (character.x === gold.x && character.y === gold.y) {
+            character.gold += 1;
+            console.log(character);
+            deleteWeapon(character);
+            golds.splice(i, 1);
+            break;
+        }
     }
 }
 
@@ -515,7 +501,7 @@ function generateNewLevel() {
     mapContainer.appendChild(display.getContainer());
     mapMatrix = [];
 
-    map.create(function(x, y, value) {
+    map.create(function (x, y, value) {
         if (!mapMatrix[x]) {
             mapMatrix[x] = [];
         }
@@ -535,12 +521,16 @@ function generateNewLevel() {
     display.setOptions(displayOptions);
 
     for (let rat of enemies) {
-        console.log(rat);
+        // console.log(rat);
         drawCharacter(rat);
     }
     for (let weapon of weapons) {
-        console.log(weapon);
+        // console.log(weapon);
         drawWeapon(weapon);
+    }
+    for (let gold of golds) {
+        // console.log(gold);
+        drawGold(gold);
     }
 
     playerCharacterCoordinates = getRandomWalkableCoordinate();
@@ -548,18 +538,14 @@ function generateNewLevel() {
     playerCharacter.y = playerCharacterCoordinates.y;
     console.log(playerCharacter);
 
-    goldCoordinates = getRandomWalkableCoordinate();
-    gold.x = goldCoordinates.x;
-    gold.y = goldCoordinates.y;
-
     stairs = generateStairs();
     drawStairs(stairs);
 
     drawCharacter(playerCharacter);
-    drawGold(gold);
-    for (let weapon of weapons) {
-        drawWeapon(weapon);
-    }
+
+    // for (let weapon of weapons) {
+    //     drawWeapon(weapon);
+    // }
     console.log(playerCharacter.gold);
 }
 
@@ -567,32 +553,35 @@ function generateNewLevel() {
 function regenerateEntities() {
     enemies = generateEnemies(level);
     weapons = generateWeapon(level);
+    golds = generateGold(level);
 }
 
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
 let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 100, 0);
 
-let goldCoordinates = getRandomWalkableCoordinate();
-let gold = new Gold(goldCoordinates.x, goldCoordinates.y, 'G', 'yellow');
 
 let enemies = generateEnemies(level);
 let weapons = generateWeapon(level);
+let golds = generateGold(level);
 
 for (let rat of enemies) {
     drawCharacter(rat);
 }
-
-let stairs = generateStairs();
-drawStairs(stairs);
-
-drawCharacter(playerCharacter);
-drawGold(gold);
 for (let weapon of weapons) {
     drawWeapon(weapon);
 
 }
+for (let gold of golds) {
+    drawGold(gold);
+}
+
+let stairs = generateStairs();
+drawStairs(stairs);
+drawCharacter(playerCharacter);
+
+
 console.log(playerCharacter.gold);
-window.addEventListener('keydown', function(event) {
+window.addEventListener('keydown', function (event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
         handleInput('z');
@@ -609,7 +598,7 @@ window.addEventListener('keydown', function(event) {
 
 // updateFOV();
 
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
 
     if (!playerCharacter.weapon) {
         console.log('no weapon');
