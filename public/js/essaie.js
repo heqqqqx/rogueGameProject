@@ -228,13 +228,54 @@ class Stairs {
         this.color = color;
     }
 }
-class Potion {
-    constructor(x, y, symbol, color, healAmount) {
+class PNJ {
+    constructor(x, y, symbol, color, name) {
         this.x = x;
         this.y = y;
         this.symbol = symbol;
         this.color = color;
-        this.healAmount = healAmount;
+        this.name = name;
+    }
+
+    exchangeGoldForHP(character) {
+        const goldCosts = {
+            2: 10,
+            5: 20,
+            10: 40,
+            20: 100
+        };
+
+        console.log("How many HP do you want to regain?");
+        console.log("1. 10 HP - 2 gold");
+        console.log("2. 20 HP - 5 gold");
+        console.log("3. 40 HP - 10 gold");
+        console.log("4. 100 HP - 20 gold");
+
+        const readline = require("readline");
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
+        rl.question("Enter your choice: ", choice => {
+            rl.close();
+            const goldCost = goldCosts[choice];
+
+            if (goldCost !== undefined) {
+                if (character.gold >= goldCost) {
+                    const hpGain = goldCost / 2;
+                    character.gold -= goldCost;
+                    character.heal(hpGain);
+
+                    console.log(`Exchanged ${goldCost} gold for ${hpGain} HP.`);
+                    console.log(`Current HP: ${character.currentHP}`);
+                } else {
+                    console.log("Not enough gold to perform the exchange.");
+                }
+            } else {
+                console.log("Invalid choice.");
+            }
+        });
     }
 }
 
@@ -314,8 +355,8 @@ function drawGold(gold) {
     display.draw(gold.x, gold.y, gold.symbol, gold.color);
 }
 
-function drawPotion(potion) {
-    display.draw(potion.x, potion.y, potion.symbol, potion.color);
+function drawPNJ(pnj) {
+    display.draw(pnj.x, pnj.y, pnj.symbol, pnj.color,pnj.name);
 }
 
 function drawStairs(stairs) {
@@ -355,6 +396,9 @@ function updateFOV() {
     }
     if (visibleCells.has(playerCharacter.x + ',' + playerCharacter.y)) {
         drawCharacter(playerCharacter);
+    }
+    if (visibleCells.has(pnj.x + ',' + pnj.y)) {
+        drawPNJ(pnj);
     }
     for (let w of weapons) {
         if (visibleCells.has(w.x + ',' + w.y)) {
@@ -622,6 +666,8 @@ function regenerateEntities() {
 let playerCharacterCoordinates = getRandomWalkableCoordinate();
 let playerCharacter = new Character(playerCharacterCoordinates.x, playerCharacterCoordinates.y, '@', 'white', 100, 100, 1, 100, 0);
 
+let pnjCoordinates = getRandomWalkableCoordinate();
+let pnj = new PNJ(pnjCoordinates.x, pnjCoordinates.y, 'P', 'white', "Marchand de coeur");
 
 let enemies = generateEnemies(level);
 let weapons = generateWeapon(level);
@@ -641,6 +687,7 @@ for (let gold of golds) {
 let stairs = generateStairs();
 drawStairs(stairs);
 drawCharacter(playerCharacter);
+drawPNJ(pnj);
 
 
 console.log(playerCharacter.gold);
