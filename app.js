@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const port = 3000;
+const port = 3010;
 
 // Définir le répertoire statique
 app.use(express.static(path.join(__dirname, 'public')));
@@ -11,11 +11,14 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'menu.html'));
 });
 app.get('/game', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'html', 'test.html'));
+    res.sendFile(path.join(__dirname, 'public', 'html', 'index.html'));
 });
 
 app.get('/load', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'load.html'));
+});
+app.get('/congrats', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'congrats.html'));
 });
 
 app.get('/gameover', (req, res) => {
@@ -23,5 +26,5 @@ app.get('/gameover', (req, res) => {
 });
 // Démarrer le serveur
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}/menu`);
+    console.log(`Example app listening at http://localhost:${port}/`);
 });
