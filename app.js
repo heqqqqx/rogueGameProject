@@ -17,6 +17,10 @@ app.get('/game', (req, res) => {
 app.get('/load', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'load.html'));
 });
+
+app.get('/gameover', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'gameover.html'));
+});
 // Démarrer le serveur
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}/menu`);
