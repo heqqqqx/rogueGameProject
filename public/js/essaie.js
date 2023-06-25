@@ -16,14 +16,15 @@ function loadGame() {
         console.log(saveData.mapMatrix)
         console.log(saveData.weapons)
         console.log(saveData.stairs)
-        console.log(saveData.gold)
+        console.log("golds : " + saveData.golds)
         console.log(saveData.level)
         mapMatrix = saveData.mapMatrix;
         playerCharacter = Object.assign(new Character(), saveData.playerCharacter);
         enemies = saveData.enemies.map(enemyData => Object.assign(new Enemy(), enemyData));
         weapons = saveData.weapons.map(weaponData => Object.assign(new Weapon(), weaponData));
         stairs = Object.assign(new Stairs(), saveData.stairs);
-        gold = Object.assign(new Gold(), saveData.gold);
+
+        golds = saveData.weapons.map(goldData => Object.assign(new Gold(), goldData));
 
         console.log('Game loaded successfully.');
 
@@ -52,7 +53,7 @@ var mapContainer = document.getElementById("map-container");
 mapContainer.appendChild(display.getContainer());
 var mapMatrix = [];
 
-map.create(function (x, y, value) {
+map.create(function(x, y, value) {
     if (!mapMatrix[x]) {
         mapMatrix[x] = [];
     }
@@ -228,15 +229,7 @@ class Stairs {
         this.color = color;
     }
 }
-class Potion {
-    constructor(x, y, symbol, color, healAmount) {
-        this.x = x;
-        this.y = y;
-        this.symbol = symbol;
-        this.color = color;
-        this.healAmount = healAmount;
-    }
-}
+
 
 function generateEnemies(level) {
     const enemies = [];
@@ -280,6 +273,7 @@ function generateWeapon(level) {
 
     return weapons;
 }
+
 function generateGold(level) {
     let golds = [];
     for (let i = 0; i < level * 2; i++) {
@@ -314,15 +308,13 @@ function drawGold(gold) {
     display.draw(gold.x, gold.y, gold.symbol, gold.color);
 }
 
-function drawPotion(potion) {
-    display.draw(potion.x, potion.y, potion.symbol, potion.color);
-}
+
 
 function drawStairs(stairs) {
     display.draw(stairs.x, stairs.y, stairs.symbol, stairs.color);
 }
 
-var fov = new ROT.FOV.PreciseShadowcasting(function (x, y) {
+var fov = new ROT.FOV.PreciseShadowcasting(function(x, y) {
     return !mapMatrix[x][y];
 });
 
@@ -335,7 +327,7 @@ function updateFOV() {
     display.clear();
     visibleCells.clear(); // Clear the set before recomputing
     try {
-        fov.compute(x, y, visibilityRadius, function (startX, startY, r, visibility) {
+        fov.compute(x, y, visibilityRadius, function(startX, startY, r, visibility) {
             let cellKey = startX + ',' + startY;
             visibleCells.add(cellKey); // Add the cell to the visible set
 
@@ -464,7 +456,7 @@ function handleInput(key) {
             pickUpGold(playerCharacter);
 
             break;
-        case 'enter':
+        case 'e':
             if (stairs && playerCharacter.x === stairs.x && playerCharacter.y === stairs.y) {
                 generateNewLevel();
             }
@@ -533,7 +525,7 @@ function saveGame() {
         enemies: enemies,
         weapons: weapons,
         stairs: stairs,
-        gold: gold,
+        golds: golds,
         level: level,
     };
 
@@ -564,7 +556,7 @@ function generateNewLevel() {
     mapContainer.appendChild(display.getContainer());
     mapMatrix = [];
 
-    map.create(function (x, y, value) {
+    map.create(function(x, y, value) {
         if (!mapMatrix[x]) {
             mapMatrix[x] = [];
         }
@@ -644,7 +636,7 @@ drawCharacter(playerCharacter);
 
 
 console.log(playerCharacter.gold);
-window.addEventListener('keydown', function (event) {
+window.addEventListener('keydown', function(event) {
     let key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'z') {
         handleInput('z');
@@ -654,8 +646,8 @@ window.addEventListener('keydown', function (event) {
         handleInput('q');
     } else if (key === 'arrowright' || key === 'd') {
         handleInput('d');
-    } else if (key === 'enter') {
-        handleInput('enter');
+    } else if (key === 'e') {
+        handleInput('e');
     } else if (key == "h") {
         handleInput('h');
     }
@@ -663,7 +655,7 @@ window.addEventListener('keydown', function (event) {
 
 // updateFOV();
 
-window.addEventListener('click', function (event) {
+window.addEventListener('click', function(event) {
 
     if (!playerCharacter.weapon) {
         console.log('no weapon');
