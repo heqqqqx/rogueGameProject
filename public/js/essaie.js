@@ -237,7 +237,7 @@ function generateWeapon(level) {
             weaponCoordinates.y,
             'W',
             'blue',
-            20,
+            200,
             10,
             0,
             "Gun"
@@ -579,6 +579,7 @@ window.addEventListener('keydown', function(event) {
 // updateFOV();
 
 window.addEventListener('click', function(event) {
+
     if (!playerCharacter.weapon) {
         console.log('no weapon');
         return
@@ -590,6 +591,8 @@ window.addEventListener('click', function(event) {
     // playerCharacter.updateStats();
     for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
+            console.log(enemies.length)
+
             rat.takeDamage(damage);
             rat.takeTurn();
             if (!rat.isAlive()) {
@@ -603,7 +606,7 @@ window.addEventListener('click', function(event) {
                 } else {
                     console.log("unlucky, you didn't find gold on this racoon")
                 }
-                console.log(enemies)
+                console.log(enemies.length)
                 console.log("rat mort gun");
             }
 
@@ -613,5 +616,7 @@ window.addEventListener('click', function(event) {
             return;
         }
     }
+    updateFOV();
+
 
 });
