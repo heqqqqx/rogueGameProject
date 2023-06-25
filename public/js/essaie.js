@@ -503,18 +503,16 @@ function deleteRat(character) {
 }
 
 function generateNewLevel() {
-    console.log("generating new level")
+    console.log("generating new level");
     level++;
 
     map = new ROT.Map.Rogue(mapWidth, mapHeight);
     console.log(display);
 
     var mapContainer = document.getElementById("map-container");
-    mapContainer.innerHTML = '';
+    mapContainer.innerHTML = "";
 
     mapContainer.appendChild(display.getContainer());
-    var mapMatrix = [];
-    console.log(display);
     mapMatrix = [];
 
     map.create(function(x, y, value) {
@@ -530,25 +528,25 @@ function generateNewLevel() {
     });
 
     regenerateEntities();
-    console.log("regenerating entities")
+    console.log("regenerating entities");
 
     displayOptions.width = mapWidth;
     displayOptions.height = mapHeight;
     display.setOptions(displayOptions);
 
     for (let rat of enemies) {
-        console.log(rat)
+        console.log(rat);
         drawCharacter(rat);
     }
     for (let weapon of weapons) {
-        console.log(weapon)
+        console.log(weapon);
         drawWeapon(weapon);
     }
 
     playerCharacterCoordinates = getRandomWalkableCoordinate();
     playerCharacter.x = playerCharacterCoordinates.x;
     playerCharacter.y = playerCharacterCoordinates.y;
-    console.log(playerCharacter)
+    console.log(playerCharacter);
 
     goldCoordinates = getRandomWalkableCoordinate();
     gold.x = goldCoordinates.x;
@@ -559,7 +557,10 @@ function generateNewLevel() {
 
     drawCharacter(playerCharacter);
     drawGold(gold);
-
+    for (let weapon of weapons) {
+        drawWeapon(weapon);
+    }
+    console.log(playerCharacter.gold);
 }
 
 
