@@ -54,6 +54,7 @@ class Console {
     init() {
         create_message('Welcome to Cramptés Dungeons!');
         create_message('Move: [Z,S,Q,D], or [←,↑,→,↓] Use: [E] (for the stairs), Shoot: [Mouse1]');
+        create_message('You can save your game by pressing [H]. You can load your game by pressing the button.');
         create_message('Finish level 5 to win the game!');
         create_message('Be aware, the more you progress, the more difficult it will be.');
         create_message('So keep an eye on your health and your ammo!');
@@ -87,7 +88,7 @@ class Console {
     }
 }
 
-var maConsole = new Console(document.getElementById('console'), 8);
+var maConsole = new Console(document.getElementById('console'), 9);
 maConsole.init();
 maConsole.render();
 
@@ -164,9 +165,9 @@ class Enemy {
             Math.abs(this.y - playerCharacter.y) <= this.sightRadius) {
             if (Math.abs(this.x - playerCharacter.x) <= 1 &&
                 Math.abs(this.y - playerCharacter.y) <= 1) {
-                playerCharacter.currentHP -= this.damage * (1 - playerCharacter.defense / 10);
+                playerCharacter.currentHP -= Math.round(this.damage * 1 - playerCharacter.defense / 10);
                 if (playerCharacter.currentHP < 0) playerCharacter.currentHP = 0;
-                create_message('The rat bites you for ' + this.damage * (1 - playerCharacter.defense / 10) + ' damage ! You now have ' + playerCharacter.currentHP + ' HP left.', '#880808', '#000');
+                create_message('The rat bites you for ' + Math.round(this.damage * (1 - playerCharacter.defense / 10)) + ' damage ! You now have ' + playerCharacter.currentHP + ' HP left.', '#880808', '#000');
                 maConsole.render();
                 console.log(`Player HP: ${playerCharacter.currentHP}`);
             } else {
@@ -373,9 +374,9 @@ function generateEnemies(level) {
             'R',
             'green',
             5 + level,
-            10 + (level - 1) * 3,
-            30 + level * 10,
-            30 + level * 10
+            10 + level * 3,
+            20 + level * 20,
+            20 + level * 20
         );
         enemies.push(rat);
     }
@@ -629,7 +630,7 @@ function pickUpWeapon(character) {
         if (character.x === weapon.x && character.y === weapon.y) {
             if (!character.weapon) {
                 character.weapon = weapon;
-                character.weapon.ammo += 4;
+                character.weapon.ammo += 3;
             } else {
                 character.weapon.ammo += 4;
             }
@@ -834,16 +835,18 @@ window.addEventListener('click', function(event) {
     const x = Math.floor((event.clientX - bounds.left) / displayOptions.fontSize);
     const y = Math.floor((event.clientY - bounds.top) / displayOptions.fontSize);
     create_message("You used one ammo. " + playerCharacter.weapon.ammo + " ammo left.");
+
     playerCharacter.updateStats();
     maConsole.render();
     for (let rat of enemies) {
         if (x === rat.x && y === rat.y) {
+            create_message("You hitted a rat for " + damage + " damage. Rat has " + rat.currentHP + " hp left.");
 
             rat.takeDamage(damage);
             rat.takeTurn();
             if (!rat.isAlive()) {
-                enemies.splice(rat, 1);
-                create_message("You hitted a rat for " + playerCharacter.weapon.damage + " damage. Rat has " + rat.currentHP + " hp left.");
+                const index = enemies.indexOf(rat);
+                enemies.splice(index, 1);
                 create_message("There are currently " + enemies.length + " enemies left.");
                 maConsole.render();
                 console.log(enemies.length)
