@@ -534,7 +534,22 @@ function moveCharacter(character, dx, dy) {
                 enemies.splice(index, 1);
                 create_message("Rat killed!");
                 maConsole.render();
+                
                 console.log("Rat killed!");
+                if (Math.random() < 0.75) {
+                    console.log(level)
+                    playerCharacter.gold += level;
+                    playerCharacter.updateStats();
+                    updateFOV();
+                    create_message("Lucky you ! You found gold on the rat ! Total gold picked up: " + level + " golds.");
+                    maConsole.render();
+                    console.log("you found gold on the ragondin");
+                } else {
+                    updateFOV();
+                    create_message("Unlucky, you didn't find gold on this rat.");
+                    maConsole.render();
+                    console.log("unlucky, you didn't find gold on this racoon")
+                }
             }
 
             updateFOV();
@@ -853,7 +868,8 @@ window.addEventListener('click', function(event) {
 
 
                 if (Math.random() < 0.75) {
-                    playerCharacter.gold + level;
+                    console.log(level)
+                    playerCharacter.gold += level;
                     playerCharacter.updateStats();
                     updateFOV();
                     create_message("Lucky you ! You found gold on the rat ! Total gold picked up: " + level + " golds.");
